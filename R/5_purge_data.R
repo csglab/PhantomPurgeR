@@ -603,5 +603,20 @@ purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded
 }
 
 
+purge_phantoms<- function(samples, torc=3, joined_counts_filepath=NULL){
+
+  read_counts <- get_joined_read_counts(samples, joined_counts_filepath = joined_counts_filepath)
+
+  outcome_counts <- create_outcome_counts(read_counts)
+  fit_out <- estimate_hopping_rate(outcome_counts)
+
+  c(umi_counts, outcome_counts, summary_stats) %<-%
+    purge_data(read_counts,
+               outcome_counts,
+               fit_out,
+               torc=torc)
+  return(list(umi_counts=umi_counts, outcome_counts=outcome_counts,fit_out=fit_out, summary_stats=summary_stats ))
+
+}
 
 
