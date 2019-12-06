@@ -381,6 +381,160 @@ mark_retained_observations <- function(outcome_counts, summary_stats, torc) {
 }
 
 
+dedup_reads <- function(read_counts, sample_names) {
+  read_counts <-
+    read_counts %>%
+    mutate_at(
+      c(sample_names, paste0(sample_names, "_hat")),
+      list(~ as.integer(. > 0))
+    )
+
+  return(read_counts)
+}
+
+
+make_count_matrices <- function(umi_counts, all_genes, get_discarded=TRUE ) {
+
+  nsamples <- length(umi_counts)
+  retained <- discarded <- vector("list", nsamples)
+  names(retained) <- names(discarded) <- names(umi_counts)
+
+  for (i in seq_len(nsamples)) {
+    cur_sample <- umi_counts[[i]]
+
+    cur_sample <-
+      cur_sample %>%
+      filter(retained +purged> 0 )
+
+    cur_cells <- cur_sample$cell
+    all_cells <- sort(unique(cur_cells))
+    cur_genes <- cur_sample$gene
+    cur_values_retained <- cur_sample$retained
+
+    retained[[i]] <- DropletUtils::makeCountMatrix(cur_genes,
+                                                  cur_cells,
+                                                  all.genes = all_genes,
+                                                  all.cells = all_cells,
+                                                  value=cur_values_retained)
+
+    if (get_discarded) {
+      cur_values_purged   <- cur_sample$purged
+      discarded[[i]] <- DropletUtils::makeCountMatrix(cur_genes,
+                                                    cur_cells,
+                                                    all.genes = all_genes,
+                                                    all.cells = all_cells,
+                                                    value=cur_values_purged)
+    }
+
+  }
+  output <- list(retained = retained)
+  if (get_discarded) {
+    output$discarded <- discarded
+  }
+  return(output)
+}
+
+
+get_purge_summary <- function(umi_counts) {
+
+  purge_summary <-
+    umi_counts %>%
+    group_by(sample) %>%
+    select(c("purged_phantom", "purged_real", "retained")) %>%
+    summarize_all(~sum(.) ) %>%
+    mutate(umi_total= purged_phantom + purged_real + retained,
+           phantom_prop= purged_phantom/umi_total) %>%
+    select(sample, umi_total, retained, purged_real, purged_phantom, phantom_prop)
+  return(purge_summary)
+
+}
+
+#' Purge and save read_counts
+#' @param read_counts read counts
+#' @param sample_names sample names
+#' @return umi_counts dataset
+create_umi_counts <- function(read_counts,
+                              sample_names) {
+
+  S <- length(sample_names)
+
+  read_counts <- dedup_reads(read_counts, sample_names)
+
+  read_counts <-
+    read_counts %>%
+    rename_at(sample_names, list(~ paste0("m", 1:S))) %>%
+    rename_at(paste0(sample_names, "_hat"), list(~ paste0("t", 1:S)))
+
+
+  # tallying molecule counts by cell-barcode and gene ID
+  setDT(read_counts)
+  umi_counts <-
+    read_counts[, lapply(.SD, sum),
+                keyby = "cell,gene,retain",
+                .SDcols = -c("umi")
+                ]
+
+  # tranforming cell-gene molecule tally table into long format
+
+  umi_counts <-
+    melt(
+      umi_counts,
+      id = 1:3,
+      variable.name = "sample",
+      measure = patterns(m = "^m", t = "^t"),
+      variable.factor = FALSE
+    )
+
+  sample_key <-
+    tibble(
+      sample = as.character(1:S),
+      sample_name = sample_names
+    )
+
+  umi_counts <-
+    left_join(umi_counts,
+              sample_key,
+              by = "sample"
+    )
+
+  umi_counts <-
+    umi_counts %>%
+    mutate(
+      sample = sample_name,
+      purged_phantom = m - t, # discarded phantom
+      purged_real = t - t * retain, # discarded real
+      retained = t * retain, # retained
+      t = NULL,
+      m = NULL,
+      sample_name = NULL,
+      retain = NULL
+    )
+
+  return(umi_counts )
+}
+
+split_counts_into_list <- function(umi_counts){
+  sample_index <-
+    umi_counts %>%
+    pull(sample)
+
+  umi_counts <-
+    umi_counts %>%
+    mutate(
+      purged=purged_phantom+purged_real,
+      purged_phantom=NULL,
+      purged_real=NULL,
+      sample = NULL
+    )
+
+  umi_counts <- split(
+    umi_counts,
+    sample_index
+  )
+  return(umi_counts)
+}
+
+
 #' Reassign reads
 #' @param read_counts read counts
 #' @param outcome_counts outcome dataset
@@ -388,7 +542,7 @@ mark_retained_observations <- function(outcome_counts, summary_stats, torc) {
 #' @param torc TOR cutoff
 #' @return outcome dataset
 #' @export
-reassign_reads_and_mark_retained_observations <- function(read_counts, outcome_counts, fit_out, torc) {
+purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded=TRUE) {
 
   summary_stats <- compute_summary_stats(outcome_counts,
                                          fit_out$glm_estimates$phat)
@@ -411,9 +565,11 @@ reassign_reads_and_mark_retained_observations <- function(read_counts, outcome_c
 
   sample_names <-
     setdiff(
-      colnames(outcome_counts),
-      c("n", "r", "k_chimera", "outcome")
+      colnames(read_counts),
+      c("cell", "gene", "umi", "outcome")
     )
+
+  all_genes <- unique(read_counts$gene)
 
   summary_stats$sample_names <- sample_names
 
@@ -432,35 +588,20 @@ reassign_reads_and_mark_retained_observations <- function(read_counts, outcome_c
     arrange(-qr) %>%
     select(-c(paste0(sample_names, "_hat")))
 
-  return(list(read_counts=read_counts, outcome_counts=outcome_counts, summary_stats=summary_stats))
+
+  umi_counts <- create_umi_counts(read_counts, sample_names)
+
+  summary_stats$purge_summary  <- get_purge_summary(umi_counts)
+
+  umi_counts <- split_counts_into_list(umi_counts)
+
+  message("making matrices")
+
+  umi_counts <- make_count_matrices(umi_counts, all_genes, get_discarded=get_discarded )
+
+  return(list(umi_counts=umi_counts, outcome_counts=outcome_counts, summary_stats=summary_stats))
 }
 
-#' Purge and save read_counts
-#' @param read_counts read counts
-#' @param dataset_name dataset name
-#' @param sample_names sample names
-#' @param output_dir output dir
-#' @return
-#' @export
-purge_and_save_read_counts <- function(read_counts,
-                                       dataset_name,
-                                       sample_names,
-                                       output_dir) {
-  read_counts_purged <-
-    read_counts %>%
-    select(-sample_names) %>%
-    filter(retain) %>%
-    select(-retain) %>%
-    rename_at(c(paste0(sample_names, "_hat")), list(~ str_remove(., "_hat$")))
 
-  purged_data_filepath <-
-    file.path(
-      output_dir,
-      sprintf(
-        "%s_read_counts_purged.rds",
-        dataset_name
-      )
-    )
 
-  saveRDS(read_counts_purged, purged_data_filepath)
-}
+
