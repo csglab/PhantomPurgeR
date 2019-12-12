@@ -4,15 +4,13 @@
 \alias{join_read_counts}
 \title{Join transciptome mapped data by cell, umi, and gene}
 \usage{
-join_read_counts(read_counts, keys = c("cell", "gene", "umi"))
+join_read_counts(output)
 }
 \arguments{
-\item{read_counts}{A list of read counts of all the samples}
-
-\item{keys}{keys for joining}
+\item{A}{list of read counts data for all samples}
 }
 \value{
-A joined read counts table
+A  joined read counts table with an outcome variable column
 }
 \description{
 Join transciptome mapped data by cell, umi, and gene

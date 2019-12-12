@@ -538,20 +538,23 @@ split_counts_into_list <- function(umi_counts){
 #' Reassign reads
 #' @param read_counts read counts
 #' @param outcome_counts outcome dataset
-#' @param fit_out Output of estimate_hopping_rate function
+#' @param output Output of estimate_hopping_rate function
 #' @param torc TOR cutoff
 #' @return outcome dataset
 #' @export
-purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded=TRUE) {
+purge_data <- function(output, torc, get_discarded=TRUE) {
+
+  outcome_counts <- output$outcome_counts
+  read_counts <- output$read_counts
 
   summary_stats <- compute_summary_stats(outcome_counts,
-                                         fit_out$glm_estimates$phat)
+                                         output$glm_estimates$phat)
 
   outcome_counts <-
     reassign_reads(
       outcome_counts,
       summary_stats$pi_r_hat,
-      fit_out$glm_estimates$phat
+      output$glm_estimates$phat
     )
 
   outcome_counts <-
@@ -563,16 +566,9 @@ purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded
 
   summary_stats <- get_threshold(outcome_counts, summary_stats)
 
-  sample_names <-
-    setdiff(
-      colnames(read_counts),
-      c("cell", "gene", "umi", "outcome")
-    )
-
   all_genes <- unique(read_counts$gene)
 
-  summary_stats$sample_names <- sample_names
-
+  sample_names <- output$sample_names
 
   read_counts <-
     left_join(read_counts %>%
@@ -583,13 +579,18 @@ purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded
     ) %>%
     select(-outcome)
 
+
+
   outcome_counts <-
     outcome_counts %>%
     arrange(-qr) %>%
     select(-c(paste0(sample_names, "_hat")))
 
 
+
   umi_counts <- create_umi_counts(read_counts, sample_names)
+
+
 
   summary_stats$purge_summary  <- get_purge_summary(umi_counts)
 
@@ -599,23 +600,38 @@ purge_data <- function(read_counts, outcome_counts, fit_out, torc, get_discarded
 
   umi_counts <- make_count_matrices(umi_counts, all_genes, get_discarded=get_discarded )
 
-  return(list(umi_counts=umi_counts, outcome_counts=outcome_counts, summary_stats=summary_stats))
+  output$outcome_counts <- outcome_counts
+  output$read_counts <- read_counts
+
+  return(c( list(umi_counts=umi_counts, summary_stats=summary_stats), output))
 }
 
+#' Compute summary statistics
+#' @param samples samples
+#' @param torc torc
+#' @param return_readcounts If true the joined readcounts is returned
+#' @param barcode.length the length of the cell barcode (for v2 data)
+#' @param max_r Maximum PCR duplication level to consider
+#' @return list
+#' @export
+purge_phantoms <- function(samples, torc=3, return_readcounts=FALSE, barcode_length = NULL, max_r = NULL){
 
-purge_phantoms<- function(samples, torc=3, joined_counts_filepath=NULL){
+  output <- read10xMolInfoSamples(samples, barcode_length)
 
-  read_counts <- get_joined_read_counts(samples, joined_counts_filepath = joined_counts_filepath)
+  output <- join_read_counts(output)
 
-  outcome_counts <- create_outcome_counts(read_counts)
-  fit_out <- estimate_hopping_rate(outcome_counts)
+  output <- estimate_hopping_rate(output, max_r = NULL)
 
-  c(umi_counts, outcome_counts, summary_stats) %<-%
-    purge_data(read_counts,
-               outcome_counts,
-               fit_out,
-               torc=torc)
-  return(list(umi_counts=umi_counts, outcome_counts=outcome_counts,fit_out=fit_out, summary_stats=summary_stats ))
+
+  output <- purge_data(output, torc=torc)
+
+
+  if (!(return_readcounts)) {
+    output$read_counts <- NULL
+  }
+
+
+  return(output)
 
 }
 

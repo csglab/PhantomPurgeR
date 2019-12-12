@@ -4,7 +4,7 @@
 \alias{add_outcome_variable}
 \title{Add outcome variable}
 \usage{
-add_outcome_variable(read_counts)
+add_outcome_variable(read_counts, sample_names)
 }
 \arguments{
 \item{read_counts}{A list of read counts of all the samples}

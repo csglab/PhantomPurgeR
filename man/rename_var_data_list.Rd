@@ -4,7 +4,7 @@
 \alias{rename_var_data_list}
 \title{Rename variables}
 \usage{
-rename_var_data_list(read_counts)
+rename_var_data_list(read_counts, sample_names)
 }
 \arguments{
 \item{read_counts}{A list of read counts of all the samples}

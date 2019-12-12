@@ -21,12 +21,62 @@ get_h5_filenames <- function(input_dir) {
   return(molecule_info_filepaths)
 }
 
+#' Load data from molecule_info.h5 files produced by 10X Genomics CellRanger software.
+#' @param samples A named list of filepaths
+#' @param barcode_length the length of the cell barcode for v2 data
+#' @return lists of cell, gene, umi, read count, and ref_genes variables
+#' @export
+read10xMolInfoSamples <- function (samples, barcode_length = NULL)
+{
+  ref_genes <- NULL
+  cells <- umis <- genes <- nreads <- vector("list", length(samples))
+  sample_names <- names(samples)
+  names(cells) <- sample_names
+  for (i in seq_along(samples)) {
+    mol_info <- DropletUtils::read10xMolInfo(samples[i], barcode.length = barcode_length)
+    if (is.null(ref_genes)) {
+      ref_genes <- mol_info$genes
+    }
+    else if (!identical(ref_genes, mol_info$genes)) {
+      stop("gene information differs between samples")
+    }
+    curgems <- mol_info$data$gem_group
+    if (length(curgems) && min(curgems) != max(curgems)) {
+      warning(paste0("sample '", samples[i], "' contains multiple GEM groups"))
+    }
+    current <- mol_info$data
+    cells[[i]] <- current$cell
+    umis[[i]] <- current$umi
+    genes[[i]] <- current$gene
+    nreads[[i]] <- current$reads
+  }
+  return(list(cells = cells, umis = umis, genes = genes, nreads = nreads, ref_genes = ref_genes, sample_names=sample_names))
+}
+
+
+
+
+#' Add outcome variable
+#' @param read_counts A list of read counts of all the samples
+#' @return A dataframe with an outcome variable added
+add_outcome_variable <- function(read_counts, sample_names) {
+
+  setDT(read_counts)
+
+  read_counts[,
+    outcome := do.call(paste, c(.SD, sep = ",")),
+    .SDcols = sample_names
+  ]
+
+  read_counts[order(outcome)]
+
+  return(read_counts)
+}
 
 #' Rename variables
 #' @param read_counts A list of read counts of all the samples
 #' @return A joined read counts table
-rename_var_data_list <- function(read_counts) {
-  sample_names <- names(read_counts)
+rename_var_data_list <- function(read_counts, sample_names) {
 
   name_list <- function(x, y) {
     names(x[[1]]) <- y
@@ -52,109 +102,47 @@ rename_var_data_list <- function(read_counts) {
 }
 
 
-#' Add outcome variable
-#' @param read_counts A list of read counts of all the samples
-#' @return A dataframe with an outcome variable added
-#' @export
-add_outcome_variable <- function(read_counts) {
-
-  S <- ncol(read_counts) - 3
-  sample_names <- colnames(read_counts)[4:(S + 3)]
-
-  setDT(read_counts)
-
-  read_counts[,
-    outcome := do.call(paste, c(.SD, sep = ",")),
-    .SDcols = sample_names
-  ]
-
-  read_counts[order(outcome)]
-
-  return(read_counts)
-}
-
-create_datatable <- function(cells = cells, umis = umis, genes = genes, nreads = nreads){
-  nsamples <- length(cells)
-  data <- list()
-  for (i in seq_len(nsamples)) {
-    data[[i]] <- tibble(cell =cells[[i]],
-                        umi = umis[[i]],
-                        gene=genes[[i]],
-                        reads= nreads[[i]])
-  }
-
-  names(data) <- names(cells)
-  return(data)
-}
-
-read10xMolInfoSamples <- function (samples, barcode.length = NULL)
-{
-  ref.genes <- NULL
-  cells <- umis <- genes <- nreads <- vector("list", length(samples))
-  names(cells) <- names(samples)
-  for (i in seq_along(samples)) {
-    mol.info <- DropletUtils::read10xMolInfo(samples[i], barcode.length = barcode.length)
-    if (is.null(ref.genes)) {
-      ref.genes <- mol.info$genes
-    }
-    else if (!identical(ref.genes, mol.info$genes)) {
-      stop("gene information differs between samples")
-    }
-    curgems <- mol.info$data$gem_group
-    if (length(curgems) && min(curgems) != max(curgems)) {
-      warning(paste0("sample '", samples[i], "' contains multiple GEM groups"))
-    }
-    current <- mol.info$data
-    cells[[i]] <- current$cell
-    umis[[i]] <- current$umi
-    genes[[i]] <- current$gene
-    nreads[[i]] <- current$reads
-  }
-  return(list(cells = cells, umis = umis, genes = genes, nreads = nreads, ref.genes = ref.genes))
-}
 
 
-#' Join transciptome mapped data by cell, umi, and gene
-#' @param read_counts A list of read counts of all the samples
-#' @param keys keys for joining
-#' @return A joined read counts table
-join_read_counts <- function(cells = cells, umis = umis, genes = genes, nreads = nreads, keys = c("cell", "gene", "umi")) {
-
-  read_counts <- create_datatable(cells = cells, umis = umis, genes = genes, nreads = nreads)
-
+join_merge_data<- function(read_counts) {
   read_counts <-
     read_counts %>%
-    rename_var_data_list() %>%
     map(setDT) %>%
     reduce(merge,
            all = TRUE,
            sort = FALSE,
            no.dups = TRUE,
-           by = keys
+           by = c("cell", "gene", "umi")
     ) %>%
     replace(is.na(.), 0)
-
-  read_counts$gene <- ref.genes[read_counts$gene]
-
   return(read_counts)
 }
 
-#' Join read counts of all samples
-#' @param read_counts A list of read counts of all the samples
-#' @param joined_counts_filepath If provided, the filepath of the joined readcounts
-#' @return A joined dataframe of read counts and an outcome variable
-#' @export
-get_joined_read_counts <- function(samples, joined_counts_filepath = NULL) {
-  if (!is.null(joined_counts_filepath) & file.exists(joined_counts_filepath)) {
-    read_counts <- readRDS(joined_counts_filepath)
-  } else if ((!is.null(joined_counts_filepath) & !file.exists(joined_counts_filepath)) | is.null(joined_counts_filepath)) {
-    c(cells, umis, genes, nreads, ref.genes) %<-% read10xMolInfoSamples(samples)
-    read_counts <- join_read_counts(cells, umis, genes, nreads, ref.genes)
-    read_counts <- add_outcome_variable(read_counts)
-  }
 
-  if (!is.null(joined_counts_filepath) & !file.exists(joined_counts_filepath)) {
-    saveRDS(read_counts, joined_counts_filepath)
+create_datatable <- function(output){
+  nsamples <- length(output$sample_names)
+  read_counts <- list()
+  for (i in seq_len(nsamples)) {
+    read_counts[[i]] <- tibble(cell =output$cells[[i]],
+                               umi = output$umis[[i]],
+                               gene=output$genes[[i]],
+                               reads= output$nreads[[i]])
   }
+  names(read_counts) <- output$sample_names
   return(read_counts)
 }
+
+#' Join transciptome mapped data by cell, umi, and gene
+#' @param A list of read counts data for all samples
+#' @return A  joined read counts table with an outcome variable column
+join_read_counts <- function(output) {
+  read_counts <- create_datatable(output)
+  output[1:4] <- NULL
+  read_counts <- rename_var_data_list(read_counts, output$sample_names)
+  read_counts <- join_merge_data(read_counts)
+  read_counts <- add_outcome_variable(read_counts, output$sample_names)
+  output$read_counts <- read_counts
+  return(output)
+}
+
+
