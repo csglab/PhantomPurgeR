@@ -7,8 +7,8 @@
 \enumerate{
 \item  \code{\link{load_molecule_info_data}}
 loads molecule_info files and creates read counts datatable.
-Each sample's *molecule_info.h5* file should be renamed to
- *{sample_name}.h5* and placed in the input_dir folder.
+Each sample's \emph{molecule_info.h5} file should be renamed to
+\emph{{sample_name}.h5} and placed in the input_dir folder.
 \item  \code{\link{get_joined_counts_table}}
 join read counts of all samples
 \item  \code{\link{create_outcome_counts}}
@@ -21,8 +21,8 @@ Workflow: Phantom Purge
 \enumerate{
 \item  \code{\link{load_molecule_info_data}}
 loads molecule_info files and creates read counts datatable.
-Each sample's *molecule_info.h5* file should be renamed to
- *{sample_name}.h5* and placed in the input_dir folder.
+Each sample's \emph{molecule_info.h5} file should be renamed to
+\emph{{sample_name}.h5} and placed in the input_dir folder.
 \item  \code{\link{get_joined_counts_table}}
 join read counts of all samples
 \item  \code{\link{create_outcome_counts}}

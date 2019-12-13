@@ -2,7 +2,12 @@
 title: "PhantomPurgeR: Vignette"
 author: "Rick Farouni"
 package: PhantomPurgeR
-output: html_notebook
+date: "`r Sys.Date()`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Converting BUS format into sparse matrix}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 
@@ -12,13 +17,7 @@ opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 ```
 ```{r}
 library(PhantomPurgeR)
-```
-```{r}
-# BiocStyle::html_document
-#vignette: >
-#  %\VignetteIndexEntry{PhantomPurgeR}
-#  %\VignetteEngine{knitr::rmarkdown}
-#  %\VignetteEncoding{UTF-8}  
+library(cowplot)
 ```
 
 
@@ -35,11 +34,11 @@ library(PhantomPurgeR)
 #                                        return.tab = FALSE)
 ```
 ```{r}
-names(samples) <- paste0("s", 1:4)
-samples
+#names(samples) <- paste0("s", 1:4)
+#samples
 ```
  
-```{r eval=FALSE, include=FALSE}
+```{r }
 input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
 samples <- get_h5_filenames(input_dir)
 samples <- samples[1:4]
@@ -62,7 +61,7 @@ out
 dataset_name <- "hiseq4000"
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 p_read <- plot_molecules_distributions(out, dataset_name, x_lim=250)
 p_read <- plot_grid(p_read$p, 
           p_read$legend,
@@ -71,7 +70,7 @@ p_read <- plot_grid(p_read$p,
 p_read
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 p_fit <- plot_fit(out, dataset_name, x_lim=100)
 p_fit <-plot_grid(p_fit$p,
           p_fit$legend,
@@ -86,7 +85,7 @@ out <- purge_phantoms(out, torc=3, return_readcounts=FALSE, return_discarded=TRU
 out 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 p_tor <-plot_tor(out, dataset_name)
 
 p_tor <-plot_grid(p_tor$p,
