@@ -4,10 +4,10 @@
 \alias{plot_fit}
 \title{Plot model fit}
 \usage{
-plot_fit(data_list, dataset_name, x_lim = 150)
+plot_fit(out, dataset_name, x_lim = 150)
 }
 \arguments{
-\item{data_list}{output list}
+\item{out}{output list}
 
 \item{dataset_name}{name of dataset for plotting}
 

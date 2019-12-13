@@ -17,13 +17,15 @@
 #' @import ggplot2
 #' @import cowplot
 #' @import tictoc
+#' @importFrom matrixStats rowSums2 rowCounts
+#' @importFrom DropletUtils read10xMolInfo makeCountMatrix
+#' @importFrom broom confint_tidy tidy
 #' @importFrom scales scientific
-#' @importFrom dplyr left_join group_by ungroup mutate mutate_if mutate_at select filter summarize rename_at
-#'  summarize_at summarize_all bind_cols bind_rows add_tally tally slice pull rename vars top_n n arrange everything matches
 #' @importFrom tidyr nest unnest spread complete gather
 #' @importFrom tibble enframe tibble
 #' @importFrom purrr map2 map %>% set_names reduce pmap_dbl
 #' @importFrom stringr str_c
 #' @importFrom furrr future_map future_pmap_dfr
-
+#' @importFrom dplyr left_join group_by ungroup mutate mutate_if mutate_at select filter summarize rename_at
+#'  summarize_at summarize_all bind_cols bind_rows add_tally tally slice pull rename vars top_n n arrange everything matches
 NULL

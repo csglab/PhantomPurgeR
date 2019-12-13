@@ -1,19 +1,19 @@
 
 #' Plot molecular proportions complexityprofile
-#' @param data_list output list
+#' @param out output list
 #' @param dataset_name name of dataset for plotting
 #' @param x_lim extent of x axis
 #' @return ggplot object
 #' @export
-plot_molecules_distributions <- function(data_list, dataset_name, x_lim = 150) {
+plot_molecules_distributions <- function(out, dataset_name, x_lim = 150) {
   pi_r_hat <-
     bind_cols(
-      data_list$summary_stats$pi_r_hat,
-      data_list$summary_stats$conditional %>%
+      out$summary_stats$pi_r_hat,
+      out$summary_stats$conditional %>%
         select(n_cugs, p_cugs)
     )
 
-  marginal_prop <- data_list$summary_stats$marginal
+  marginal_prop <- out$summary_stats$marginal
 
 
   p1 <-
@@ -115,16 +115,16 @@ plot_molecules_distributions <- function(data_list, dataset_name, x_lim = 150) {
 }
 
 #' Plot model fit
-#' @param data_list output list
+#' @param out output list
 #' @param dataset_name name of dataset for plotting
 #' @param x_lim extent of x axis
 #' @return ggplot object
 #' @export
-plot_fit <- function(data_list,
+plot_fit <- function(out,
                      dataset_name,
                      x_lim = 150) {
-  chimera_counts <- data_list$chimera_counts
-  glm_estimates <- data_list$glm_estimates
+  chimera_counts <- out$chimera_counts
+  glm_estimates <- out$glm_estimates
 
   p1 <- ggplot(chimera_counts) +
     geom_point(aes(r,
@@ -232,14 +232,14 @@ plot_fit <- function(data_list,
 
 
 #' Plot tradeoff
-#' @param data_list output list
+#' @param out output list
 #' @param dataset_name name of dataset for plotting
 #' @param x_lim extent of x axis
 #' @return ggplot object
 #' @export
-plot_tradeoff <- function(data_list,
+plot_tradeoff <- function(out,
                           dataset_name) {
-  outcome_counts <- data_list$outcome_counts
+  outcome_counts <- out$outcome_counts
 
 
   p1 <- ggplot(outcome_counts) +
@@ -264,7 +264,7 @@ plot_tradeoff <- function(data_list,
       y = "False Negatives"
     ) +
     geom_point(
-      data = data_list$summary_stats$cutoff_dt %>%
+      data = out$summary_stats$cutoff_dt %>%
         filter(approach %in% c("discard_torc", "no_discarding", "no_purging")),
       aes(
         x = FP,
@@ -303,18 +303,18 @@ plot_tradeoff <- function(data_list,
 }
 
 #' Plot TOR curves
-#' @param data_list output list
+#' @param out output list
 #' @param dataset_name name of dataset for plotting
 #' @param x_lim extent of x axis
 #' @return ggplot object
 #' @export
-plot_tor <- function(data_list,
+plot_tor <- function(out,
                      dataset_name) {
-  outcome_counts <- data_list$outcome_counts
+  outcome_counts <- out$outcome_counts
 
 
   p1 <-
-    ggplot(data_list$outcome_counts) +
+    ggplot(out$outcome_counts) +
     geom_point(
       aes(
         x = FPm,
@@ -328,7 +328,7 @@ plot_tor <- function(data_list,
       y = "Marginal Increase in False Negatives (discard real molecs)"
     ) +
     geom_point(
-      data = data_list$summary_stats$cutoff_dt %>%
+      data = out$summary_stats$cutoff_dt %>%
         filter(approach %in% c("discard_torc")),
       aes(
         x = FPm,
@@ -406,25 +406,25 @@ plot_tor <- function(data_list,
 }
 
 
-# make_plots <- function(data_list, dataset_name, x_lim = 160) {
-#   p_rdist <- plot_molecules_distributions(data_list$reads_dist_summary)
+# make_plots <- function(out, dataset_name, x_lim = 160) {
+#   p_rdist <- plot_molecules_distributions(out$reads_dist_summary)
 #
 #
-#   p_fit <- plot_fit(data_list$fit_out$chimera_counts,
-#     data_list$fit_out$glm_estimates,
+#   p_fit <- plot_fit(out$fit_out$chimera_counts,
+#     out$fit_out$glm_estimates,
 #     x_lim = x_lim
 #   )
 #
 #
-#   p_class <- plot_posterior_prob(data_list$outcome_counts,
-#     # data_list$fit_out$glm_estimates,
-#     data_list$optimal_cutoff
+#   p_class <- plot_posterior_prob(out$outcome_counts,
+#     # out$fit_out$glm_estimates,
+#     out$optimal_cutoff
 #   )
 #
 #   p_phantoms <- plot_phantoms(
-#     data_list$umi_counts_cell,
-#     data_list$umi_counts_gene,
-#     data_list$umi_counts_sample
+#     out$umi_counts_cell,
+#     out$umi_counts_gene,
+#     out$umi_counts_sample
 #   )
 #
 #
@@ -449,12 +449,12 @@ plot_tor <- function(data_list,
 #   return(plot_list)
 # }
 
-# plot_posterior_prob <- function(data_list,
+# plot_posterior_prob <- function(out,
 #                                 dataset_name) {
-#   outcome_counts <- data_list$outcome_counts
+#   outcome_counts <- out$outcome_counts
 #
 #   optimal_cutoff <-
-#     data_list$summary_stats$cutoff_dt %>%
+#     out$summary_stats$cutoff_dt %>%
 #     filter(approach == "discard_torc") %>%
 #     mutate(
 #       qs = -10 * log10(1e-16) + 10 * log10(qr + 1e-16)

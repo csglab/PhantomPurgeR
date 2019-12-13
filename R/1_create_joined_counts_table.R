@@ -34,7 +34,7 @@ read10xMolInfoSamples <- function (samples, barcode_length = NULL)
   names(cells) <- sample_names
   for (i in seq_along(samples)) {
     mol_info <-
-      DropletUtils::read10xMolInfo(samples[i], barcode.length = barcode_length)
+      read10xMolInfo(samples[i], barcode.length = barcode_length)
     if (is.null(ref_genes)) {
       ref_genes <- mol_info$genes
     }
@@ -62,9 +62,6 @@ read10xMolInfoSamples <- function (samples, barcode_length = NULL)
     )
   )
 }
-
-
-
 
 #' Add outcome variable
 #' @param read_counts A list of read counts of all the samples
@@ -145,7 +142,8 @@ create_datatable <- function(out) {
 #' Join transciptome mapped data by cell, umi, and gene
 #' @param A list of read counts data for all samples
 #' @return A  joined read counts table with an outcome variable column
-join_read_counts <- function(out) {
+#' @export
+join_data <- function(out) {
   read_counts <- create_datatable(out)
   out[1:4] <- NULL
   read_counts <- rename_var_data_list(read_counts, out$sample_names)

@@ -4,10 +4,10 @@
 \alias{plot_tor}
 \title{Plot TOR curves}
 \usage{
-plot_tor(data_list, dataset_name)
+plot_tor(out, dataset_name)
 }
 \arguments{
-\item{data_list}{output list}
+\item{out}{output list}
 
 \item{dataset_name}{name of dataset for plotting}
 

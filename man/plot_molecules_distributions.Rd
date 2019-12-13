@@ -4,10 +4,10 @@
 \alias{plot_molecules_distributions}
 \title{Plot molecular proportions complexityprofile}
 \usage{
-plot_molecules_distributions(data_list, dataset_name, x_lim = 150)
+plot_molecules_distributions(out, dataset_name, x_lim = 150)
 }
 \arguments{
-\item{data_list}{output list}
+\item{out}{output list}
 
 \item{dataset_name}{name of dataset for plotting}
 

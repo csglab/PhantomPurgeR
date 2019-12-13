@@ -2,7 +2,6 @@
 #' @param outcome_counts outcome dataset
 #' @param sample_names sample names
 #' @return dataframe of grouping variables
-#' @importFrom matrixStats rowSums2 rowCounts
 create_grouping_vars <- function(outcome_counts, sample_names) {
   S <- length(sample_names)
 
@@ -103,7 +102,6 @@ create_chimera_counts <- function(outcome_counts, S) {
 #' @param outcome_counts outcome dataset
 #' @param max_r Maximum PCR duplication level to consider
 #' @return list of two dataframes (glm estimates and chimera counts)
-#' @importFrom broom confint_tidy tidy
 fit_glm <- function(chimera_counts, S, max_r, conf_level = 0.99) {
   fit_dt <-
     chimera_counts %>%
@@ -186,12 +184,17 @@ estimate_hopping_rate <- function(out, max_r = NULL) {
   chimera_counts <-
     update_chimera_counts(chimera_counts,
                           glm_estimates)
+
+  summary_stats <- compute_summary_stats(outcome_counts,
+                                         glm_estimates$phat)
+
   out <- c(
     out,
     list(
       outcome_counts = outcome_counts,
       glm_estimates = glm_estimates,
-      chimera_counts = chimera_counts
+      chimera_counts = chimera_counts,
+      summary_stats=summary_stats
     )
   )
   return(out)

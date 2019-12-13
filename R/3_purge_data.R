@@ -397,7 +397,6 @@ dedup_reads <- function(read_counts, sample_names) {
 #' @param all_genes ref_genes
 #' @param return_discarded return discarded data
 #' @return list of two lists containing retained and discarded data
-#' @importFrom DropletUtils makeCountMatrix
 make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
 
   nsamples <- length(umi_counts)
@@ -563,10 +562,9 @@ merge_counts_outcomes <- function(read_counts, outcome_counts, sample_names){
 #' @export
 purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=TRUE) {
 
+  sample_names <- out$sample_names
   outcome_counts <- out$outcome_counts
-
-  summary_stats <- compute_summary_stats(outcome_counts,
-                                         out$glm_estimates$phat)
+  summary_stats <-  out$summary_stats
 
   outcome_counts <-
     reassign_reads(
@@ -584,10 +582,10 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 
   summary_stats <- get_threshold(outcome_counts, summary_stats)
 
-  sample_names <- out$sample_names
 
-
-  out$read_counts <- merge_counts_outcomes(out$read_counts, outcome_counts, sample_names)
+  out$read_counts <- merge_counts_outcomes(out$read_counts,
+                                           outcome_counts,
+                                           sample_names)
 
   outcome_counts <-
     outcome_counts %>%
@@ -599,38 +597,26 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 
   summary_stats$purge_summary  <- get_purge_summary(umi_counts)
 
+
   umi_counts <- split_counts_into_list(umi_counts)
 
   message("making matrices")
 
   all_genes <- out$ref_genes
 
-  umi_counts <- make_count_matrices(umi_counts, all_genes, return_discarded=return_discarded )
+  umi_counts <- make_count_matrices(umi_counts,
+                                    all_genes,
+                                    return_discarded=return_discarded )
 
+  out$summary_stats <- summary_stats
   out$outcome_counts <- outcome_counts
 
   if (!(return_readcounts)) {
     out$read_counts <- NULL
   }
 
-  return(c( list(umi_counts=umi_counts, summary_stats=summary_stats), out))
+  return(c( list(umi_counts=umi_counts), out))
 }
 
-#' Compute summary statistics
-#' @param samples samples
-#' @param barcode.length the length of the cell barcode (for v2 data)
-#' @param max_r Maximum PCR duplication level to consider
-#' @return list
-#' @export
-load_and_estimate_sihr <- function(samples,  barcode_length = NULL, max_r = NULL){
-
-  out <- read10xMolInfoSamples(samples, barcode_length)
-
-  out <- join_read_counts(out)
-
-  out <- estimate_hopping_rate(out, max_r = NULL)
-
-  return(out)
-}
 
 

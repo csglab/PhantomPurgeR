@@ -4,10 +4,10 @@
 \alias{plot_tradeoff}
 \title{Plot tradeoff}
 \usage{
-plot_tradeoff(data_list, dataset_name)
+plot_tradeoff(out, dataset_name)
 }
 \arguments{
-\item{data_list}{output list}
+\item{out}{output list}
 
 \item{dataset_name}{name of dataset for plotting}
 
