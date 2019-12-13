@@ -1,14 +1,44 @@
 Package: PhantomPurgeR
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Type: Package
+Title: PhantomPurgeR
+Version: 0.99.0
+Date: 2019-12-13
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Rick",
+           family = "Farouni",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
-Encoding: UTF-8
+           email = "rick.farouni@mcgill.edu",
+           comment = c(ORCID = "0000-0002-3454-2946"))
+Description: R package for the optimal purging of phantom molecules by the robust estimation 
+            of the sample index hopping rate in multiplexed droplet-based single-cell RNA-seq data.
 LazyData: true
+BugReports: https://github.com/csglab/PhantomPurgeR/issues
+URL: https://github.com/csglab/PhantomPurgeR
+Imports: 
+    DropletUtils,
+    data.table,
+    dplyr,
+    stringr,
+    tibble,
+    tidyr,
+    ggplot2,
+    purrr,
+    furrr,
+    scales,
+    cowplot,
+    broom,
+    matrixStats,
+    tictoc
 RoxygenNote: 7.0.1
+Roxygen: list(markdown = TRUE)
+Suggests: 
+    knitr,
+    rmarkdown,
+    BiocStyle
+VignetteBuilder: knitr
+Encoding: UTF-8
+License: BSD_2_clause + file LICENSE
+biocViews:
+    SingleCell,
+    RNASeq,
+    WorkflowStep
