@@ -2,30 +2,22 @@
 % Please edit documentation in R/3_purge_data.R
 \name{purge_phantoms}
 \alias{purge_phantoms}
-\title{Compute summary statistics}
+\title{Reassign reads}
 \usage{
-purge_phantoms(
-  samples,
-  torc = 3,
-  return_readcounts = FALSE,
-  barcode_length = NULL,
-  max_r = NULL
-)
+purge_phantoms(out, torc, return_readcounts = FALSE, return_discarded = TRUE)
 }
 \arguments{
-\item{samples}{samples}
+\item{out}{out from previous steps}
 
-\item{torc}{torc}
+\item{torc}{TOR cutoff}
 
 \item{return_readcounts}{If true the joined readcounts is returned}
 
-\item{max_r}{Maximum PCR duplication level to consider}
-
-\item{barcode.length}{the length of the cell barcode (for v2 data)}
+\item{return_discarded}{return discarded data}
 }
 \value{
-list
+out list with additional objects; umi_counts and summary_stats
 }
 \description{
-Compute summary statistics
+Reassign reads
 }

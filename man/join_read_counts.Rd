@@ -4,7 +4,7 @@
 \alias{join_read_counts}
 \title{Join transciptome mapped data by cell, umi, and gene}
 \usage{
-join_read_counts(output)
+join_read_counts(out)
 }
 \arguments{
 \item{A}{list of read counts data for all samples}

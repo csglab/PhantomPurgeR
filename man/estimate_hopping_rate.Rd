@@ -4,15 +4,15 @@
 \alias{estimate_hopping_rate}
 \title{Estimate hopping rate}
 \usage{
-estimate_hopping_rate(output, max_r = NULL)
+estimate_hopping_rate(out, max_r = NULL)
 }
 \arguments{
-\item{output}{list}
+\item{out}{list}
 
 \item{max_r}{Maximum PCR duplication level to consider}
 }
 \value{
-output list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
+out list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
 }
 \description{
 Estimate hopping rate

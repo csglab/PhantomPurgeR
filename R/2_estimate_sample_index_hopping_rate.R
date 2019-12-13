@@ -15,10 +15,8 @@ create_grouping_vars <- function(outcome_counts, sample_names) {
   k_chimera <- as.integer(S - rowCounts(outcome_counts, value = 0))
 
 
-  grouping_vars <- tibble(
-    r = r,
-    k_chimera = k_chimera
-  )
+  grouping_vars <- tibble(r = r,
+                          k_chimera = k_chimera)
 
   return(grouping_vars)
 }
@@ -27,15 +25,16 @@ create_grouping_vars <- function(outcome_counts, sample_names) {
 #' @param outcome_counts outcome dataset
 #' @param sample_names sample names
 #' @return Datatable of outcome counts
-add_vars_to_outcome_counts <- function(outcome_counts, sample_names) {
-  grouping_vars <-
-    create_grouping_vars(outcome_counts, sample_names)
-  outcome_counts <-
-    bind_cols(outcome_counts, grouping_vars) %>%
-    arrange(r, k_chimera) %>%
-    select(outcome, n, r, k_chimera, everything(), sample_names)
-  return(outcome_counts)
-}
+add_vars_to_outcome_counts <-
+  function(outcome_counts, sample_names) {
+    grouping_vars <-
+      create_grouping_vars(outcome_counts, sample_names)
+    outcome_counts <-
+      bind_cols(outcome_counts, grouping_vars) %>%
+      arrange(r, k_chimera) %>%
+      select(outcome, n, r, k_chimera, everything(), sample_names)
+    return(outcome_counts)
+  }
 
 #' Create outcome counts
 #' @param read_counts A list of read counts of all the samples
@@ -43,7 +42,6 @@ add_vars_to_outcome_counts <- function(outcome_counts, sample_names) {
 #' @return Datatable of outcome counts
 #' @export
 create_outcome_counts <- function(read_counts, sample_names) {
-
   outcome_counts <-
     read_counts %>%
     group_by(outcome) %>%
@@ -53,10 +51,8 @@ create_outcome_counts <- function(read_counts, sample_names) {
     select(outcome, n, sample_names) %>%
     ungroup()
 
-  outcome_counts <- add_vars_to_outcome_counts(
-    outcome_counts,
-    sample_names
-  )
+  outcome_counts <- add_vars_to_outcome_counts(outcome_counts,
+                                               sample_names)
 
   return(outcome_counts)
 }
@@ -68,7 +64,6 @@ create_outcome_counts <- function(read_counts, sample_names) {
 #' @param S number of samples
 #' @return Dataframe of chimera counts
 create_chimera_counts <- function(outcome_counts, S) {
-
   # creating a data table of k_chimera counts
   chimera_counts <-
     outcome_counts %>%
@@ -85,9 +80,8 @@ create_chimera_counts <- function(outcome_counts, S) {
   chimera_counts <-
     chimera_counts %>%
     complete(r,
-      k_chimera,
-      fill = list(nn = 0)
-    ) %>%
+             k_chimera,
+             fill = list(nn = 0)) %>%
     spread(k_chimera, nn) %>%
     filter(r != 100000) %>%
     ungroup()
@@ -130,31 +124,20 @@ fit_glm <- function(chimera_counts, S, max_r, conf_level = 0.99) {
   glm_estimates <-
     fit_dt %>%
     unnest(c(tidied,
-      confint_tidied,
-      max_r) ) %>%
-    select(
-      -std.error,
-      -statistic,
-      -p.value
-    ) %>%
+             confint_tidied,
+             max_r)) %>%
+    select(-std.error,-statistic,-p.value) %>%
     mutate_if(is.double,
-      .funs = list(p = ~ exp(.))
-    ) %>%
-    select(
-      max_r,
-      estimate_p,
-      conf.low_p,
-      conf.high_p
-    ) %>%
-    rename(
-      phat = estimate_p,
-      phat_low = conf.low_p,
-      phat_high = conf.high_p
-    ) %>%
-    mutate(
-      SIHR = 1 - phat,
-      SBIHR = (1 - phat) * ((4 * S - 1) / (4 * S - 4))
-    )
+              .funs = list(p = ~ exp(.))) %>%
+    select(max_r,
+           estimate_p,
+           conf.low_p,
+           conf.high_p) %>%
+    rename(phat = estimate_p,
+           phat_low = conf.low_p,
+           phat_high = conf.high_p) %>%
+    mutate(SIHR = 1 - phat,
+           SBIHR = (1 - phat) * ((4 * S - 1) / (4 * S - 4)))
 
   return(glm_estimates)
 }
@@ -167,24 +150,24 @@ update_chimera_counts <- function(chimera_counts, glm_estimates) {
   chimera_counts <-
     chimera_counts %>%
     mutate(
-      phat_chimeras = 1 - glm_estimates$phat^r,
-      phat_chimeras_low = 1 - glm_estimates$phat_low^r,
-      phat_chimeras_high = 1 - glm_estimates$phat_high^r
+      phat_chimeras = 1 - glm_estimates$phat ^ r,
+      phat_chimeras_low = 1 - glm_estimates$phat_low ^ r,
+      phat_chimeras_high = 1 - glm_estimates$phat_high ^ r
     )
   return(chimera_counts)
 }
 
 #' Estimate hopping rate
-#' @param output list
+#' @param out list
 #' @param max_r Maximum PCR duplication level to consider
-#' @return output list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
+#' @return out list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
 #' @export
-estimate_hopping_rate <- function(output, max_r = NULL) {
+estimate_hopping_rate <- function(out, max_r = NULL) {
+  outcome_counts <-
+    create_outcome_counts(out$read_counts, out$sample_names)
 
-  outcome_counts <- create_outcome_counts(output$read_counts, output$sample_names)
 
-
-  S <- length(output$sample_names)
+  S <- length(out$sample_names)
 
   chimera_counts <- create_chimera_counts(outcome_counts, S)
 
@@ -197,19 +180,19 @@ estimate_hopping_rate <- function(output, max_r = NULL) {
 
   glm_estimates <-
     fit_glm(chimera_counts,
-      S = S,
-      max_r
-    )
+            S = S,
+            max_r)
 
   chimera_counts <-
-    update_chimera_counts(
-      chimera_counts,
-      glm_estimates
+    update_chimera_counts(chimera_counts,
+                          glm_estimates)
+  out <- c(
+    out,
+    list(
+      outcome_counts = outcome_counts,
+      glm_estimates = glm_estimates,
+      chimera_counts = chimera_counts
     )
- output <- c(output, list(
-   outcome_counts=outcome_counts,
-   glm_estimates = glm_estimates,
-   chimera_counts = chimera_counts
- ))
-  return(output)
+  )
+  return(out)
 }

@@ -1,0 +1,77 @@
+---
+title: "PhantomPurgeR: Vignette"
+output: html_notebook
+---
+
+```{r}
+library(PhantomPurgeR)
+```
+
+
+```{r}
+samples <- DropletUtils:::sim10xMolInfo(tempfile(),
+                                        nsamples = 4,
+                                        umi.length = 14,
+                                        barcode.length = 8, 
+                                        ngenes = 200, 
+                                        nmolecules = 1000000,
+                                        swap.frac = 0.1,
+                                        ave.read = 10, 
+                                        version = c("3"), 
+                                        return.tab = FALSE)
+```
+```{r}
+names(samples) <- paste0("s", 1:4)
+samples
+```
+ 
+```{r}
+input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
+samples <- get_h5_filenames(input_dir)
+samples <- samples[1:4]
+```
+
+```{r}
+ out <- load_and_estimate_sihr(samples, barcode_length = NULL, max_r = NULL)
+```
+
+```{r}
+out
+```
+
+
+```{r}
+dataset_name <- "hiseq4000"
+```
+
+```{r}
+p_read <- plot_molecules_distributions(out, dataset_name, x_lim=250)
+p_read <- plot_grid(p_read$p, 
+          p_read$legend,
+          ncol=2,
+          rel_widths=c(1, 0.1))
+p_read
+```
+
+```{r}
+p_fit <- plot_fit(out, dataset_name, x_lim=250)
+p_fit <-plot_grid(p_fit$p,
+          p_fit$legend,
+          ncol=2,
+          rel_widths=c(1, 0.2))
+p_fit
+```
+
+```{r}
+plot_tor(out, dataset_name)
+```
+```{r}
+out <- purge_phantoms(out, torc=3, return_readcounts=FALSE, return_discarded=TRUE)
+out 
+```
+
+```{r}
+sessionInfo()
+```
+
+

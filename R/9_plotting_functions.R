@@ -1,5 +1,10 @@
 
-
+#' Plot molecular proportions complexityprofile
+#' @param data_list output list
+#' @param dataset_name name of dataset for plotting
+#' @param x_lim extent of x axis
+#' @return ggplot object
+#' @export
 plot_molecules_distributions <- function(data_list, dataset_name, x_lim = 150) {
   pi_r_hat <-
     bind_cols(
@@ -109,12 +114,17 @@ plot_molecules_distributions <- function(data_list, dataset_name, x_lim = 150) {
   ))
 }
 
-
+#' Plot model fit
+#' @param data_list output list
+#' @param dataset_name name of dataset for plotting
+#' @param x_lim extent of x axis
+#' @return ggplot object
+#' @export
 plot_fit <- function(data_list,
                      dataset_name,
                      x_lim = 150) {
-  chimera_counts <- data_list$fit_out$chimera_counts
-  glm_estimates <- data_list$fit_out$glm_estimates
+  chimera_counts <- data_list$chimera_counts
+  glm_estimates <- data_list$glm_estimates
 
   p1 <- ggplot(chimera_counts) +
     geom_point(aes(r,
@@ -221,8 +231,12 @@ plot_fit <- function(data_list,
 
 
 
-
-
+#' Plot tradeoff
+#' @param data_list output list
+#' @param dataset_name name of dataset for plotting
+#' @param x_lim extent of x axis
+#' @return ggplot object
+#' @export
 plot_tradeoff <- function(data_list,
                           dataset_name) {
   outcome_counts <- data_list$outcome_counts
@@ -288,7 +302,12 @@ plot_tradeoff <- function(data_list,
   return(list(p = p1, legend = legend))
 }
 
-
+#' Plot TOR curves
+#' @param data_list output list
+#' @param dataset_name name of dataset for plotting
+#' @param x_lim extent of x axis
+#' @return ggplot object
+#' @export
 plot_tor <- function(data_list,
                      dataset_name) {
   outcome_counts <- data_list$outcome_counts
@@ -386,131 +405,132 @@ plot_tor <- function(data_list,
   return(list(p = p1, legend = legend))
 }
 
-make_plots <- function(data_list, dataset_name, x_lim = 160) {
-  p_rdist <- plot_read_distributions(data_list$reads_dist_summary)
 
+# make_plots <- function(data_list, dataset_name, x_lim = 160) {
+#   p_rdist <- plot_molecules_distributions(data_list$reads_dist_summary)
+#
+#
+#   p_fit <- plot_fit(data_list$fit_out$chimera_counts,
+#     data_list$fit_out$glm_estimates,
+#     x_lim = x_lim
+#   )
+#
+#
+#   p_class <- plot_posterior_prob(data_list$outcome_counts,
+#     # data_list$fit_out$glm_estimates,
+#     data_list$optimal_cutoff
+#   )
+#
+#   p_phantoms <- plot_phantoms(
+#     data_list$umi_counts_cell,
+#     data_list$umi_counts_gene,
+#     data_list$umi_counts_sample
+#   )
+#
+#
+#   plot_list <- list(
+#     p_rdist = p_rdist,
+#     p_fit = p_fit,
+#     p_class = p_class,
+#     p_phantoms = p_phantoms
+#   )
+#   saveRDS(
+#     plot_list,
+#     file.path(
+#       output_dir,
+#       sprintf(
+#         "%s_ggplot_objects.rds",
+#         dataset_name
+#       )
+#     )
+#   )
+#
+#
+#   return(plot_list)
+# }
 
-  p_fit <- plot_fit(data_list$fit_out$chimera_counts,
-    data_list$fit_out$glm_estimates,
-    x_lim = x_lim
-  )
-
-
-  p_class <- plot_posterior_prob(data_list$outcome_counts,
-    # data_list$fit_out$glm_estimates,
-    data_list$optimal_cutoff
-  )
-
-  p_phantoms <- plot_phantoms(
-    data_list$umi_counts_cell,
-    data_list$umi_counts_gene,
-    data_list$umi_counts_sample
-  )
-
-
-  plot_list <- list(
-    p_rdist = p_rdist,
-    p_fit = p_fit,
-    p_class = p_class,
-    p_phantoms = p_phantoms
-  )
-  saveRDS(
-    plot_list,
-    file.path(
-      output_dir,
-      sprintf(
-        "%s_ggplot_objects.rds",
-        dataset_name
-      )
-    )
-  )
-
-
-  return(plot_list)
-}
-
-plot_posterior_prob <- function(data_list,
-                                dataset_name) {
-  outcome_counts <- data_list$outcome_counts
-
-  optimal_cutoff <-
-    data_list$summary_stats$cutoff_dt %>%
-    filter(cutoff == "torc") %>%
-    mutate(
-      qs = -10 * log10(1e-16) + 10 * log10(qr + 1e-16)
-    )
-
-  p1 <- ggplot(outcome_counts) +
-    geom_line(aes(
-      x = qs,
-      y = FPp,
-      colour = "FPp"
-    ),
-    alpha = 0.7
-    ) +
-    geom_point(aes(
-      x = qs,
-      y = o,
-      colour = "ECDF (o)"
-    ),
-    size = 1,
-    shape = 18
-    ) +
-    geom_vline(
-      data = optimal_cutoff,
-      aes(xintercept = qs),
-      linetype = "dashed",
-      color = "grey"
-    ) +
-    annotate(
-      "text",
-      x = optimal_cutoff$qs + 5,
-      y = .1,
-      label = sprintf(
-        "qs*=%.1f",
-        optimal_cutoff$qs
-      ),
-      size = 4
-    ) +
-    labs(
-      x = "qs",
-      y = "proportion"
-    ) +
-    theme_bw() +
-    scale_color_manual(
-      name = "",
-      values = c(
-        "red",
-        "green",
-        "darkblue",
-        "purple"
-      )
-    ) +
-    theme(
-      axis.title.x = element_text(size = rel(1.4)),
-      axis.title.y = element_text(size = rel(1.4)),
-      axis.text = element_text(size = rel(1.3)),
-      legend.title = element_text(size = rel(1.1), face = "bold"),
-      legend.text = element_text(size = rel(1.1))
-    )
-
-  legend <- get_legend(p1)
-  p1 <- p1 + theme(legend.position = "none")
-
-  p_fit <-
-    ggdraw() +
-    draw_plot(p1, 0, 0, 1, 1) +
-    draw_label(dataset_name,
-      x = 0,
-      y = 1,
-      vjust = 2,
-      hjust = -1.3,
-      size = 12,
-      fontface = "italic"
-    )
-
-  return(list(p = p_fit, legend = legend))
-}
+# plot_posterior_prob <- function(data_list,
+#                                 dataset_name) {
+#   outcome_counts <- data_list$outcome_counts
+#
+#   optimal_cutoff <-
+#     data_list$summary_stats$cutoff_dt %>%
+#     filter(approach == "discard_torc") %>%
+#     mutate(
+#       qs = -10 * log10(1e-16) + 10 * log10(qr + 1e-16)
+#     )
+#
+#   p1 <- ggplot(outcome_counts) +
+#     geom_line(aes(
+#       x = qs,
+#       y = FPp,
+#       colour = "FPp"
+#     ),
+#     alpha = 0.7
+#     ) +
+#     geom_point(aes(
+#       x = qs,
+#       y = o,
+#       colour = "ECDF (o)"
+#     ),
+#     size = 1,
+#     shape = 18
+#     ) +
+#     geom_vline(
+#       data = optimal_cutoff,
+#       aes(xintercept = qs),
+#       linetype = "dashed",
+#       color = "grey"
+#     ) +
+#     annotate(
+#       "text",
+#       x = optimal_cutoff$qs + 5,
+#       y = .1,
+#       label = sprintf(
+#         "qs*=%.1f",
+#         optimal_cutoff$qs
+#       ),
+#       size = 4
+#     ) +
+#     labs(
+#       x = "qs",
+#       y = "proportion"
+#     ) +
+#     theme_bw() +
+#     scale_color_manual(
+#       name = "",
+#       values = c(
+#         "red",
+#         "green",
+#         "darkblue",
+#         "purple"
+#       )
+#     ) +
+#     theme(
+#       axis.title.x = element_text(size = rel(1.4)),
+#       axis.title.y = element_text(size = rel(1.4)),
+#       axis.text = element_text(size = rel(1.3)),
+#       legend.title = element_text(size = rel(1.1), face = "bold"),
+#       legend.text = element_text(size = rel(1.1))
+#     )
+#
+#   legend <- get_legend(p1)
+#   p1 <- p1 + theme(legend.position = "none")
+#
+#   p_fit <-
+#     ggdraw() +
+#     draw_plot(p1, 0, 0, 1, 1) +
+#     draw_label(dataset_name,
+#       x = 0,
+#       y = 1,
+#       vjust = 2,
+#       hjust = -1.3,
+#       size = 12,
+#       fontface = "italic"
+#     )
+#
+#   return(list(p = p_fit, legend = legend))
+# }
 
 # save_reassigned_read_counts <- function(read_counts,
 #                                         data_outcome,
