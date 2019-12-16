@@ -17,84 +17,94 @@ opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 ```
 ```{r}
 library(PhantomPurgeR)
-library(cowplot)
 ```
 
 
+# Simulate Data 
+
 ```{r}
-#samples <- DropletUtils:::sim10xMolInfo(tempfile(),
-#                                        nsamples = 4,
-#                                        umi.length = 14,
-#                                        barcode.length = 8, 
-#                                        ngenes = 200, 
-#                                        nmolecules = 1000000,
-#                                        swap.frac = 0.1,
-#                                        ave.read = 10, 
-#                                       version = c("3"), 
-#                                        return.tab = FALSE)
+tempfile_prefix <- tempfile()
+samples <-
+  DropletUtils:::sim10xMolInfo(tempfile_prefix, 
+                               nsamples = 4, 
+                               umi.length = 10,
+                               barcode.length = 8,
+                               ngenes = 200,
+                               nmolecules = 1000000,
+                               swap.frac = 0.1,
+                               ave.read = 20, 
+                               version = c("3"))
+```
+
+
+### Read filepaths of all h5 files found in input_dir
+
+```{r}
+#input_dir <- file.path("~/Documents/index_hopping/data/hiseq4000/input")
+input_dir<- dirname(tempfile_prefix)
 ```
 ```{r}
-#names(samples) <- paste0("s", 1:4)
-#samples
-```
- 
-```{r }
-input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
 samples <- get_h5_filenames(input_dir)
-samples <- samples[1:4]
+samples
 ```
+
+Change the names of the samples
+
+```{r}
+names(samples) <- paste0("s", 1:4)
+samples
+```
+
+# Run PhantomPurgeR workflow
+
+## (1) Read data
+
 ```{r}
 out <- read10xMolInfoSamples(samples, barcode_length = NULL)
+```
 
+##  (2) Join and merge data
+
+```{r}
 out <- join_data(out)
+```
 
+## (3) Estimate sample index hopping rate
+
+```{r}
 out <- estimate_hopping_rate(out, max_r = NULL)
 ```
 
+## (4) Purge phantom molecules
 
 ```{r}
-out
-```
-
-
-```{r}
-dataset_name <- "hiseq4000"
-```
-
-```{r message=FALSE, warning=FALSE}
-p_read <- plot_molecules_distributions(out, dataset_name, x_lim=250)
-p_read <- plot_grid(p_read$p, 
-          p_read$legend,
-          ncol=2,
-          rel_widths=c(1, 0.1))
-p_read
-```
-
-```{r message=FALSE, warning=FALSE}
-p_fit <- plot_fit(out, dataset_name, x_lim=100)
-p_fit <-plot_grid(p_fit$p,
-          p_fit$legend,
-          ncol=2,
-          rel_widths=c(1, 0.2))
-p_fit
-```
-
-
-```{r}
-out <- purge_phantoms(out, torc=3, return_readcounts=FALSE, return_discarded=TRUE)
+out <- purge_phantoms(out,
+                      torc=3,
+                      return_readcounts=FALSE,
+                      return_discarded=TRUE)
 out 
 ```
 
-```{r message=FALSE, warning=FALSE}
-p_tor <-plot_tor(out, dataset_name)
 
-p_tor <-plot_grid(p_tor$p,
-          p_tor$legend,
-          ncol=2,
-          rel_widths=c(1, 0.2))
-p_tor 
+Alternatively you can run all the preceding 4 steps all at once
+
+```{r}
+#out <- phantom_purger(samples, torc=3, max_r = NULL, barcode_length=NULL, return_readcounts=FALSE, return_discarded=TRUE)
 ```
 
+## Make plots
+
+```{r}
+dataset_name <- "test400"
+```
+```{r message=FALSE, warning=FALSE}
+plots <- make_plots(out, dataset_name, x_lim = 50, legend_rel_width=0.2)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+plots 
+```
 
 ```{r}
 sessionInfo()

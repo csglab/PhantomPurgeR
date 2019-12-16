@@ -1,15 +1,18 @@
 #' Workflow: Phantom Purge
 #' \enumerate{
-#' \item  \code{\link{load_molecule_info_data}}
-#' loads molecule_info files and creates read counts datatable.
-#' Each sample's *molecule_info.h5* file should be renamed to
-#'  *{sample_name}.h5* and placed in the input_dir folder.
-#' \item  \code{\link{get_joined_counts_table}}
-#' join read counts of all samples
-#' \item  \code{\link{create_outcome_counts}}
-#' create outcome counts datatable
+#' \item  \code{\link{get_h5_filenames}}
+#' Returns named list of sample filepaths of CellRanger molecule_info.h5 files in provided directory.
+#' \item  \code{\link{read10xMolInfoSamples}}
+#' Loads molecule_info.h5 samples. Renamed files in the input_dir folder as
+#'  *{sample_name}.h5* or rename the list of samples' filepaths.
+#' \item  \code{\link{join_data}}
+#' Join read counts of all samples. Merge mapped data by cell, umi, and gene keys.
 #' \item  \code{\link{estimate_hopping_rate}}
-#' create a chimera counts datatable and estimate hopping rate
+#' Create outcome counts datatable, chimera counts datatable, and estimate the sample index hopping rate.
+#' \item  \code{\link{purge_data}}
+#' Reassign hopped reads and purge phantom molecules.
+#' \item  \code{\link{make_plots}}
+#' Create diagnostics plots.
 #' }
 #' @docType package
 #' @name PhantomPurgeR

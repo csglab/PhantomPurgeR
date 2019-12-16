@@ -406,6 +406,51 @@ plot_tor <- function(out,
 }
 
 
+#' Make plots
+#' @param out output list
+#' @param dataset_name name of dataset for plotting
+#' @param x_lim extent of x axis
+#' @param legend_rel_width relative width of legend subplot
+#' @return list of ggplot objects
+#' @export
+make_plots <- function(out, dataset_name, x_lim = 160, legend_rel_width=0.2) {
+
+
+  p_read <- plot_molecules_distributions(out,
+                                         dataset_name,
+                                         x_lim=x_lim)
+  p_read <- plot_grid(p_read$p,
+                      p_read$legend,
+                      ncol=2,
+                      rel_widths=c(1, legend_rel_width))
+
+  p_fit <- plot_fit(out,
+                    dataset_name,
+                    x_lim=x_lim)
+  p_fit <-plot_grid(p_fit$p,
+                    p_fit$legend,
+                    ncol=2,
+                    rel_widths=c(1, legend_rel_width))
+
+  p_tor <-plot_tor(out,
+                   dataset_name)
+  p_tor <-plot_grid(p_tor$p,
+                    p_tor$legend,
+                    ncol=2,
+                    rel_widths=c(1, legend_rel_width))
+
+  plot_list <- list(
+    p_read = p_read,
+    p_fit = p_fit,
+    p_tor = p_tor
+  )
+
+
+
+  return(plot_list)
+}
+
+
 # make_plots <- function(out, dataset_name, x_lim = 160) {
 #   p_rdist <- plot_molecules_distributions(out$reads_dist_summary)
 #
