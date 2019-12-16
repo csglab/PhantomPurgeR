@@ -27,7 +27,7 @@ get_h5_filenames <- function(input_dir) {
 #' @export
 read10xMolInfoSamples <- function (samples, barcode_length = NULL)
 {
-  tic("Loading samples data from molecule_info.h5 files produced by 10X Genomics CellRanger software.")
+  tic("Loading samples data from molecule_info.h5 files produced by 10X Genomics CellRanger software")
 
   ref_genes <- NULL
   cells <-

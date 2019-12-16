@@ -71,11 +71,33 @@ out <- read10xMolInfoSamples(samples, barcode_length = NULL)
 out <- join_data(out)
 ```
 
+### Read counts datatable
+
+```{r}
+out$read_counts
+```
+
+
+
 ## (3) Estimate sample index hopping rate
 
 ```{r}
 out <- estimate_hopping_rate(out, max_r = NULL)
 ```
+
+###
+
+```{r}
+out$glm_estimates
+```
+
+
+
+
+```{r}
+out$summary_stats
+```
+
 
 ## (4) Purge phantom molecules
 
@@ -93,6 +115,15 @@ Alternatively all the preceding 4 steps can all be run at once.
 #out <- phantom_purger(samples, torc=3, max_r = NULL, barcode_length=NULL, return_readcounts=FALSE, return_discarded=TRUE)
 ```
 
+
+
+### Outcome counts datatable
+
+The datatable is ordered in descending order of qr, the posterior probability of incorrectly assigning s as the inferred sample of origin. n is the number of CUGs with the corresponding outcome and p_outcome is the observed marginal probability of that outcome.
+
+```{r}
+out$outcome_counts
+```
 ### Make plots
 
 ```{r}

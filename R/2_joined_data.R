@@ -78,14 +78,14 @@ create_datatable <- function(out) {
 #' @return A  joined read counts table with an outcome variable column
 #' @export
 join_data <- function(out) {
-  tic("Joining data. Step 1: creating read counts datatables from lists.")
+  tic("Joining data. Step 1: creating read counts datatables from lists")
   read_counts <- create_datatable(out)
   toc()
-  tic("Joining data. Step 2: joining and merging datatables for all samples keyed by cell, umi, and gene.")
+  tic("Joining data. Step 2: joining and merging datatables for all samples keyed by cell, umi, and gene")
   out[1:4] <- NULL
   read_counts <- join_merge_data(read_counts)
   toc()
-  tic("Joining data. Step 3: creating an outcomes variable for each row.")
+  tic("Joining data. Step 3: creating an outcome variable for each row")
   read_counts <- add_outcome_variable(read_counts, out$sample_names)
   out$read_counts <- read_counts
   toc()

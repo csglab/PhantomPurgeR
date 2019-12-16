@@ -328,24 +328,24 @@ update_chimera_counts <- function(chimera_counts, glm_estimates) {
 #' @export
 estimate_hopping_rate <- function(out, max_r = NULL) {
 
-  tic("Estimating SIHR. Step 1: creating outcome counts datatable.")
+  tic("Estimating SIHR. Step 1: creating outcome counts datatable")
   outcome_counts <-
     create_outcome_counts(out$read_counts, out$sample_names)
   toc()
 
-  tic("Estimating SIHR. Step 2: creating chimera counts datatable.")
+  tic("Estimating SIHR. Step 2: creating chimera counts datatable")
   S <- length(out$sample_names)
   chimera_counts <- create_chimera_counts(outcome_counts, S)
   toc()
 
-  tic("Estimating SIHR. Step 3: fitting GLM.")
+  tic("Estimating SIHR. Step 3: fitting GLM")
   glm_estimates <-
     fit_glm(chimera_counts,
             S = S,
             max_r)
   toc()
 
-  tic("Estimating SIHR. Step 4: computing summary statistics.")
+  tic("Estimating SIHR. Step 4: computing summary statistics")
   chimera_counts <-
     update_chimera_counts(chimera_counts,
                           glm_estimates)
