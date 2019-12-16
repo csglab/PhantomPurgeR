@@ -21,9 +21,9 @@ library(PhantomPurgeR)
 
 
 # Simulate Data 
-
-```{r}
-tempfile_prefix <- tempfile()
+```{r eval=FALSE, include=TRUE}
+input_dir <-  tempdir()
+tempfile_prefix <-file.path(input_dir, "sample")
 samples <-
   DropletUtils:::sim10xMolInfo(tempfile_prefix, 
                                nsamples = 4, 
@@ -39,10 +39,12 @@ samples <-
 
 ### Read filepaths of all h5 files found in input_dir
 
+
 ```{r}
-#input_dir <- file.path("~/Documents/index_hopping/data/hiseq4000/input")
-input_dir<- dirname(tempfile_prefix)
+input_dir <- system.file("extdata", package = "PhantomPurgeR")
 ```
+
+
 ```{r}
 samples <- get_h5_filenames(input_dir)
 samples
@@ -85,14 +87,13 @@ out <- purge_phantoms(out,
 out 
 ```
 
-
-Alternatively you can run all the preceding 4 steps all at once
+Alternatively all the preceding 4 steps can all be run at once.
 
 ```{r}
 #out <- phantom_purger(samples, torc=3, max_r = NULL, barcode_length=NULL, return_readcounts=FALSE, return_discarded=TRUE)
 ```
 
-## Make plots
+### Make plots
 
 ```{r}
 dataset_name <- "test400"

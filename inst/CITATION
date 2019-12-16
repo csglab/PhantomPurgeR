@@ -1,0 +1,12 @@
+bibentry(
+    bibtype = "Article",
+    title = "Statistical modeling, estimation, and remediation of sample index hopping in multiplexed droplet-based single-cell RNA-seq data",
+    author = c(
+        person("Rick", "Farouni"),
+        person("Haig", "Djambazian"),
+        person("Jiannis", "Ragoussis"),
+        person(c("Hamed", "S."), "Najafabadi")),
+    journal = "biorxiv",
+    year = "2019",
+    doi = "10.1101/617225 "
+)
