@@ -28,11 +28,11 @@ samples <-
   DropletUtils:::sim10xMolInfo(tempfile_prefix, 
                                nsamples = 4, 
                                umi.length = 10,
-                               barcode.length = 8,
-                               ngenes = 200,
+                               barcode.length = 4,
+                               ngenes = 100,
                                nmolecules = 1000000,
-                               swap.frac = 0.1,
-                               ave.read = 20, 
+                               swap.frac = 0.2,
+                               ave.read = 30, 
                                version = c("3"))
 ```
 
@@ -40,14 +40,16 @@ samples <-
 ### Read filepaths of all h5 files found in input_dir
 
 
+
 ```{r}
+#input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
 input_dir <- system.file("extdata", package = "PhantomPurgeR")
 ```
 
 
 ```{r}
 samples <- get_h5_filenames(input_dir)
-samples
+samples <- samples[1:4]
 ```
 
 Change the names of the samples
@@ -85,7 +87,7 @@ out$read_counts
 out <- estimate_hopping_rate(out, max_r = NULL)
 ```
 
-###
+### Estimates
 
 ```{r}
 out$glm_estimates
@@ -93,21 +95,63 @@ out$glm_estimates
 
 
 
+#### Summary statistics of the joined read counts datatable
 
 ```{r}
-out$summary_stats
+out$summary_stats$summary_estimates
 ```
 
+p_chimeras is the proportion CUGs that are chimeric. g is the estimated proportion of fugue molecules and u is the molecule inflation factor such that n_cugs x u would give the number of non-fugue phantom molecules. The estimated total number of phantom molecules present in the dataset is given by n_pm=n_cugs x (u+g).
+
+
+#### Marginal summary statistics
+
+```{r}
+out$summary_stats$marginal
+```
 
 ## (4) Purge phantom molecules
+
+Set the trade-off ratio cost cutoff (torc). The parameter torc represents the number of real molecules one is willing to incorrectly discard in order to correctly purge one phantom molecule. Since discarding a large proportion of the data is undesirable, reasonable values of torc are expected to be within the range of 1-5.
 
 ```{r}
 out <- purge_phantoms(out,
                       torc=3,
                       return_readcounts=FALSE,
                       return_discarded=TRUE)
-out 
 ```
+
+
+
+```{r}
+out$summary_stats$cutoff_dt
+```
+
+The row discard_torc shows the outcome whose qr value is the maximum allowed. Reads corresponding to outcomes with greater qr values are discarded. no_discarding corresponds to retaining all reassigned reads and no_purging corresponds to keeping the data as it is.
+
+```{r}
+out$summary_stats$purge_summary
+```
+
+
+```{r}
+str(out$umi_counts$retained)
+```
+
+```{r}
+str(out$umi_counts$discarded)
+```
+
+
+
+#### Outcome counts datatable
+
+The datatable is ordered in descending order of qr, the posterior probability of incorrectly assigning s as the inferred sample of origin. n is the number of CUGs with the corresponding outcome and p_outcome is the observed marginal probability of that outcome.
+
+```{r}
+out$outcome_counts
+```
+
 
 Alternatively all the preceding 4 steps can all be run at once.
 
@@ -116,25 +160,17 @@ Alternatively all the preceding 4 steps can all be run at once.
 ```
 
 
-
-### Outcome counts datatable
-
-The datatable is ordered in descending order of qr, the posterior probability of incorrectly assigning s as the inferred sample of origin. n is the number of CUGs with the corresponding outcome and p_outcome is the observed marginal probability of that outcome.
-
-```{r}
-out$outcome_counts
-```
-### Make plots
+## Make plots
 
 ```{r}
 dataset_name <- "test400"
 ```
 ```{r message=FALSE, warning=FALSE}
-plots <- make_plots(out, dataset_name, x_lim = 50, legend_rel_width=0.2)
+plots <- make_plots(out, dataset_name, x_lim = 150, legend_rel_width=0.2)
 ```
 
 
-```{r message=FALSE, warning=FALSE}
+```{r fig.width=14, message=FALSE, warning=FALSE}
 plots 
 ```
 

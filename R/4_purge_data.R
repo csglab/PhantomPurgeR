@@ -1,7 +1,8 @@
 
 get_product_logsum <- function(x, y) {
-  z_log <- log(x) + log(y)
-  z <- exp(z_log)
+
+   z_log <- log(x) + log(y)
+   z <- exp(z_log)
   return(z)
 }
 
@@ -197,14 +198,13 @@ mark_retained_observations <- function(outcome_counts, summary_stats, torc) {
         p_outcome
       )),
       FP = round(get_product_logsum(FPp, n_cugs)),
-      FN = round(max(get_product_logsum(1 - o + FPp - g, n_cugs),0, na.rm = T)),
+      FN = round(get_product_logsum(pmax(1 - o + FPp - g, 1e-16), n_cugs)),
       TP = round(get_product_logsum(o - FPp, n_cugs)),
       TN = round(get_product_logsum(u + g - FPp, n_cugs)),
       FPm = last(FP) - FP, # marginal
       FNm = FN - last(FN), # marginal
       tor = FNm / FPm
     )
-  max(log(1 - 1 + 4.220754e-17 - g),0, na.rm = T)
   tor_thresh <-
     outcome_counts %>%
     summarize(tor_thresh = tor[which.max(-pmax(tor, torc))]) %>%
