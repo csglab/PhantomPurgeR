@@ -95,9 +95,7 @@ compute_summary_stats <- function(outcome_counts, phat) {
     bind_cols(marginal, .) %>%
     mutate(
       p_molecs = n_molecs / sum(n_molecs),
-      FRM = n_reads / n_molecs # ,
-      #  n_molecs = n_molecs / 1000000,
-      #   n_reads = n_reads / 1000000
+      RMR = n_reads / n_molecs
     )
 
   summary_estimates <-
@@ -136,9 +134,9 @@ compute_summary_stats <- function(outcome_counts, phat) {
     mutate(
       g = g,
       n_pm = round(n_cugs * (u + g)),
-      frm = n_reads / n_cugs
+      RMR = n_reads / n_cugs
     ) %>%
-    select(n_reads, n_cugs, n_pm, u, g, frm, p_chimeras, everything())
+    select(n_reads, n_cugs, n_pm, u, g, RMR, p_chimeras, everything())
 
   pi_r_hat <-
     estimate_pi_r_hat_matrix(
