@@ -32,7 +32,7 @@ library(PhantomPurgeR)
 require(knitr)
 opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-options(future.globals.maxSize= +Inf)
+options(future.globals.maxSize= +Inf, future.fork.enable=TRUE)
 ```
 
 
@@ -221,7 +221,7 @@ create_grouping_vars <- function(outcomes, S) {
     apply(cbind(outcomes,r),
           1,
           function(x) {
-            y <- which(x[1:S] >=  (x[S + 1] * 0.7))
+            y <- which(x[1:S] >=  (x[S + 1] * 0.5))
             y <- unname(y)
             if (length(y) == 0)
               y <- 0
@@ -244,7 +244,7 @@ create_grouping_vars <- function(outcomes, S) {
     apply(cbind(outcomes,r),
           1,
           function(x) {
-            y <- which(x[1:S] >=  (x[S + 1] * 0.9))
+            y <- which(x[1:S] >=  (x[S + 1] ))
             y <- unname(y)
             if (length(y) == 0)
               y <- 0
@@ -463,7 +463,7 @@ compute_classification_metrics <- function(p, torc=3){
   metrics_dt <- bind_cols(maxfrac_fp,
                           maxfrac_fn) %>%
     
-    mutate(cutoff = c("mf_0.60", "mf_0.80", "mf_0.90")) %>%
+    mutate(cutoff = c("mf_0.50", "mf_0.80", "mf_1.00")) %>%
     bind_rows(., metrics_tor) %>%
     select(cutoff, everything())
   
@@ -533,10 +533,13 @@ return(list(p=p, legend=legend))
 
 
 ```{r}
-S <-6
-rmax <-15
-#prob <- runif( S, min=.05, max=.5)
-prob <- c(0.5, 0.4, 0.3, 0.2, 0.15, 0.1)
+S <-4
+rmax <- 50
+a <- .5
+b <- .5 
+prob <- (rbeta(S, a, b)/ 2) + 0.05 #min=.05, max=.55
+prob
+#prob <- c(0.5, 0.4, 0.3, 0.2, 0.15, 0.1)
 ```
 
 ```{r}
@@ -561,9 +564,16 @@ m_df
 
 ## Simulate outcomes
 
+
+```{r}
+pi_r_filtered <- pi_out$Pi %>% select(-m, -sum_mols)
+pi_r_filtered
+```
+
 ```{r}
 pvec <- seq(0.982,0.998, by=.004)
 names(pvec) <- pvec
+pvec 
 ```
 
 
@@ -571,6 +581,7 @@ names(pvec) <- pvec
 metrics_list <-
   map(pvec, compute_classification_metrics)
 ```
+
 
 
 ```{r}
@@ -602,7 +613,7 @@ p_tradeoff_all
 
 
 
-save plot
+# save plot
 
 ```{r}
 save_plot(file.path(figures_dir,"simulation_tradoff.pdf"), 
