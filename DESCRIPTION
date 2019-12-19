@@ -29,7 +29,7 @@ Imports:
     broom,
     matrixStats,
     tictoc
-RoxygenNote: 7.0.1
+RoxygenNote: 7.0.2
 Roxygen: list(markdown = TRUE)
 Suggests: 
     knitr,
