@@ -3,9 +3,9 @@ title: "PhantomPurgeR: Vignette"
 author: "Rick Farouni"
 package: PhantomPurgeR
 date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+output: html_document
 vignette: >
-  %\VignetteIndexEntry{Converting BUS format into sparse matrix}
+  %\VignetteIndexEntry{workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -42,8 +42,8 @@ samples <-
 
 
 ```{r}
-#input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
-input_dir <- system.file("extdata", package = "PhantomPurgeR")
+input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
+#input_dir <- system.file("extdata", package = "PhantomPurgeR")
 ```
 
 

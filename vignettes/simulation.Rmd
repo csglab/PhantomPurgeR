@@ -221,7 +221,7 @@ create_grouping_vars <- function(outcomes, S) {
     apply(cbind(outcomes,r),
           1,
           function(x) {
-            y <- which(x[1:S] >=  (x[S + 1] * 0.5))
+            y <- which(x[1:S] >=  (x[S + 1] * 0.6))
             y <- unname(y)
             if (length(y) == 0)
               y <- 0
@@ -244,7 +244,7 @@ create_grouping_vars <- function(outcomes, S) {
     apply(cbind(outcomes,r),
           1,
           function(x) {
-            y <- which(x[1:S] >=  (x[S + 1] ))
+            y <- which(x[1:S] >=  (x[S + 1]* 1.0))
             y <- unname(y)
             if (length(y) == 0)
               y <- 0
@@ -265,8 +265,7 @@ create_grouping_vars <- function(outcomes, S) {
 
 add_vars_to_outcome_counts <- function(outcomes, S) {
   
-  grouping_vars <- create_grouping_vars(outcomes,
-                                        S) 
+  grouping_vars <- create_grouping_vars(outcomes,S) 
   outcomes <- bind_cols(outcomes, grouping_vars)  
   
   return(outcomes)
@@ -337,7 +336,10 @@ generate_outcomes <- function(...,p, S){
      
     outcomes <- add_vars_to_outcome_counts(outcomes, S)
     
+
+    
     outcomes <- add_posterior_prob(outcomes, S, p, pi_r) 
+    
     
    outcomes <- 
      outcomes %>%
@@ -463,7 +465,7 @@ compute_classification_metrics <- function(p, torc=3){
   metrics_dt <- bind_cols(maxfrac_fp,
                           maxfrac_fn) %>%
     
-    mutate(cutoff = c("mf_0.50", "mf_0.80", "mf_1.00")) %>%
+    mutate(cutoff = c("mf_0.60", "mf_0.80", "mf_1.00")) %>%
     bind_rows(., metrics_tor) %>%
     select(cutoff, everything())
   
@@ -533,17 +535,18 @@ return(list(p=p, legend=legend))
 
 
 ```{r}
-S <-4
-rmax <- 50
-a <- .5
-b <- .5 
-prob <- (rbeta(S, a, b)/ 2) + 0.05 #min=.05, max=.55
-prob
-#prob <- c(0.5, 0.4, 0.3, 0.2, 0.15, 0.1)
+S <- 6
+rmax <- 25
+#a <- .3
+#b <- .3
+#prob <- (2*rbeta(S, a, b)/ 5) + 0.1 #min=.1, max=.5
+prob1 <- c(0.5, 0.45, 0.3, 0.1, 0.07, 0.05)
+prob2 <- c(0.5, 0.4, 0.3, 0.2, 0.1, 0.05)
+prob3 <- c(0.4, 0.35, 0.3, 0.25, 0.2)
 ```
 
 ```{r}
-pi_out <- simulate_pi(prob, rmax)
+pi_out <- simulate_pi(prob1, rmax)
 ```
 
 ```{r}
@@ -554,6 +557,17 @@ pi_out$summary
 ```{r fig.width=12}
 plot_Pi(pi_out$Pi, pi_out$summary)
 ```
+
+
+
+
+
+
+
+
+
+
+
 
 ## Set maximum range of *r* and simulate *m* 
 
@@ -616,7 +630,7 @@ p_tradeoff_all
 # save plot
 
 ```{r}
-save_plot(file.path(figures_dir,"simulation_tradoff.pdf"), 
+save_plot(file.path("simulation_tradoff4.pdf"), 
           p_tradeoff_all,
           ncol = 3, # we're saving a grid plot of 2 columns
           nrow = 2, # and 2 rows
