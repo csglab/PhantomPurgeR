@@ -23,8 +23,6 @@ library(PhantomPurgeR)
 
 ### Read filepaths of all h5 files found in input_dir
 
-
-
 ```{r}
 input_dir <- system.file("extdata", package = "PhantomPurgeR")
 ```
