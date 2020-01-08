@@ -20,42 +20,23 @@ library(PhantomPurgeR)
 ```
 
 
-# Simulate Data 
-```{r eval=FALSE, include=TRUE}
-input_dir <-  tempdir()
-tempfile_prefix <-file.path(input_dir, "sample")
-samples <-
-  DropletUtils:::sim10xMolInfo(tempfile_prefix, 
-                               nsamples = 4, 
-                               umi.length = 10,
-                               barcode.length = 4,
-                               ngenes = 100,
-                               nmolecules = 1000000,
-                               swap.frac = 0.2,
-                               ave.read = 30, 
-                               version = c("3"))
-```
-
 
 ### Read filepaths of all h5 files found in input_dir
 
 
 
 ```{r}
-input_dir <- file.path("/home/rfarouni/Documents/index_hopping/data/hiseq4000/input")
-#input_dir <- system.file("extdata", package = "PhantomPurgeR")
+input_dir <- system.file("extdata", package = "PhantomPurgeR")
 ```
-
 
 ```{r}
 samples <- get_h5_filenames(input_dir)
-samples <- samples[1:4]
 ```
 
-Change the names of the samples
+Change the names of the samples if needed
 
 ```{r}
-names(samples) <- paste0("s", 1:4)
+names(samples) <- paste0("s", 1:length(samples))
 samples
 ```
 
@@ -80,7 +61,6 @@ out$read_counts
 ```
 
 
-
 ## (3) Estimate sample index hopping rate
 
 ```{r}
@@ -92,7 +72,6 @@ out <- estimate_hopping_rate(out, max_r = NULL)
 ```{r}
 out$glm_estimates
 ```
-
 
 
 #### Summary statistics of the joined read counts datatable
@@ -162,11 +141,9 @@ Alternatively all the preceding 4 steps can all be run at once.
 
 ## Make plots
 
-```{r}
-dataset_name <- "test400"
-```
 ```{r message=FALSE, warning=FALSE}
-plots <- make_plots(out, dataset_name, x_lim = 150, legend_rel_width=0.2)
+dataset_name <- "testdata"
+plots <- make_plots(out, dataset_name, x_lim = 60, legend_rel_width=0.2)
 ```
 
 
