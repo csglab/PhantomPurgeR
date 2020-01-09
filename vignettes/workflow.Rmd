@@ -110,7 +110,7 @@ Set the trade-off ratio cost cutoff (torc). The parameter torc represents the nu
 out <- purge_phantoms(out,
                       torc=3,
                       return_readcounts=FALSE,
-                      return_discarded=FALSE)
+                      return_discarded=TRUE)
 ```
 
 
@@ -155,6 +155,7 @@ plots <- make_plots(out, dataset_name, x_lim = 150, legend_rel_width=0.2)
 ```{r fig.width=12, message=FALSE, warning=FALSE}
 plots 
 ```
+
 
 ```{r}
 sessionInfo()

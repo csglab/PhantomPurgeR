@@ -1,0 +1,90 @@
+---
+title: "PhantomPurgeR: Downstream Analysis Vignette"
+author: "Rick Farouni"
+package: PhantomPurgeR
+date: "`r Sys.Date()`"
+output: rmarkdown::html_document
+vignette: >
+  %\VignetteIndexEntry{PhantomPurgeR Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+## Downstream Analyses
+
+```{r}
+call_emptydrops <- function(sample_umi_count, lower = 200, fdr_thresh = 0.005) {
+  sample_emptydrops <-
+    DropletUtils::emptyDrops(sample_umi_count,
+      lower = lower
+    ) %>%
+    as.data.frame() %>%
+    rownames_to_column(var = "cell") %>%
+    select(cell, FDR)
+
+  sample_emptydrops[is.na(sample_emptydrops)] <- 1
+
+  sample_emptydrops <-
+    sample_emptydrops %>%
+    mutate(
+      is_cell = FDR <= fdr_thresh,
+      FDR = NULL
+    )
+
+  return(sample_emptydrops)
+}
+
+call_defaultdrops <- function(sample_umi_count) {
+  sample_defaultdrops <- DropletUtils::defaultDrops(sample_umi_count)
+  sample_defaultdrops <- enframe(sample_defaultdrops,
+    name = "cell",
+    value = "is_cell"
+  )
+
+  return(sample_defaultdrops)
+}
+
+call_cells <- function(umi_count_matrix, sample_name) {
+  called_cells <- future_map(
+    umi_count_matrix,
+    plyr::failwith(
+      NULL,
+      call_emptydrops
+    )
+  )
+
+
+  if (is.null(called_cells$unpurged) | is.null(called_cells$purged)) {
+    message(paste0(
+      "Using defaultDrops cell calling instead.
+      EmptyDrops function call failed for purged sample ",
+      sample_name
+    ))
+    called_cells <- map(umi_count_matrix, call_defaultdrops)
+  }
+
+
+  called_cells <- left_join(called_cells$unpurged,
+    called_cells$purged,
+    by = "cell",
+    suffix = c("_unpurged", "_purged")
+  )
+
+
+  return(called_cells)
+}
+
+  called_cells <- imap(
+    umi_count_matrices,
+    call_cells
+  )
+  
+```
+
