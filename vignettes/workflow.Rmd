@@ -3,7 +3,7 @@ title: "PhantomPurgeR: Vignette"
 author: "Rick Farouni"
 package: PhantomPurgeR
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::html_document
 vignette: >
   %\VignetteIndexEntry{PhantomPurgeR Workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -26,7 +26,7 @@ library(PhantomPurgeR)
 The data directory *input_dir* is the filepath of the folder that contains all the molecule_info.h5 files of all the samples that were multiplexed on the same lane. The files can be renamed by sample names (e.g. sample_name.h5) before being loaded or after as shown below. 
 
 ```{r}
-input_dir <- "./hiseq4000"
+input_dir <- "~/Documents/hiseq4000"
 ```
 
 ```{r}
@@ -34,13 +34,20 @@ samples_filepaths <- get_h5_filenames(input_dir)
 samples_filepaths
 ```
 
-Change the names of the samples if the filenames are too long. For example, they can be numbered sequentially
+Change the names of the samples if the filenames are too long.
 
 ```{r}
 #names(samples_filepaths) <- paste0("s", 1:length(samples_filepaths))
 ```
 
 # Run PhantomPurgeR workflow
+
+The workflow can be run in four stages or alternatively all steps can all be run at once using the *phantom_purger* function.
+
+```{r}
+#out <- phantom_purger(samples, torc=3, return_readcounts=FALSE, return_discarded=FALSE)
+```
+
 
 ## (1) Read data
 
@@ -64,7 +71,7 @@ out$read_counts
 ## (3) Estimate sample index hopping rate
 
 ```{r}
-out <- estimate_hopping_rate(out, max_r = NULL)
+out <- estimate_hopping_rate(out)
 ```
 
 ### Estimates
@@ -91,13 +98,19 @@ out$summary_stats$marginal
 
 ## (4) Purge phantom molecules
 
+Call garbage collection first
+
+```{r}
+gc()
+```
+
 Set the trade-off ratio cost cutoff (torc). The parameter torc represents the number of real molecules one is willing to incorrectly discard in order to correctly purge one phantom molecule. Since discarding a large proportion of the data is undesirable, reasonable values of torc are expected to be within the range of 1-5.
 
 ```{r}
 out <- purge_phantoms(out,
                       torc=3,
                       return_readcounts=FALSE,
-                      return_discarded=TRUE)
+                      return_discarded=FALSE)
 ```
 
 
@@ -114,12 +127,9 @@ out$summary_stats$purge_summary
 
 
 ```{r}
-str(out$umi_counts$retained)
+str(out$umi_counts$retained$A1)
 ```
 
-```{r}
-str(out$umi_counts$discarded)
-```
 
 
 
@@ -132,22 +142,17 @@ out$outcome_counts
 ```
 
 
-Alternatively all the preceding 4 steps can all be run at once.
-
-```{r}
-#out <- phantom_purger(samples, torc=3, max_r = NULL, barcode_length=NULL, return_readcounts=FALSE, return_discarded=TRUE)
-```
 
 
-## Make plots
+## Make diagnostic plots
 
 ```{r message=FALSE, warning=FALSE}
-dataset_name <- "testdata"
-plots <- make_plots(out, dataset_name, x_lim = 60, legend_rel_width=0.2)
+dataset_name <- "Hiseq4000"
+plots <- make_plots(out, dataset_name, x_lim = 150, legend_rel_width=0.2)
 ```
 
 
-```{r fig.width=14, message=FALSE, warning=FALSE}
+```{r fig.width=12, message=FALSE, warning=FALSE}
 plots 
 ```
 

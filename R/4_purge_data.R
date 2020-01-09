@@ -421,12 +421,12 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
     )
   toc()
 
-  tic("Purging phantom molecules. Step 2: getting observed tor threshold below user-provided tor cutoff")
+  tic("Purging phantom molecules. Step 2: getting observed tor threshold below user-provided cutoff")
 
   summary_stats <- get_threshold(outcome_counts, summary_stats)
   toc()
 
-  tic("Purging phantom molecules. Step 3: marking retained observations in original read counts table")
+  tic("Purging phantom molecules. Step 3: marking retained observations in read counts table")
 
   out$read_counts <- merge_counts_outcomes(out$read_counts,
                                            outcome_counts,
@@ -446,7 +446,7 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 
 
 
-  tic("Purging phantom molecules. Step 5: create sparse count matrices of cleaned and discarded data for each sample")
+  tic("Purging phantom molecules. Step 4: creating sparse count matrices of cleaned and discarded data")
 
   umi_counts <- split_counts_into_list(umi_counts)
 
