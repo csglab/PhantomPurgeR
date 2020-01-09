@@ -7,12 +7,12 @@
 estimate_hopping_rate(out, max_r = NULL)
 }
 \arguments{
-\item{out}{list}
+\item{out}{list containing read_counts and sample_names}
 
 \item{max_r}{Maximum PCR duplication level to consider}
 }
 \value{
-out list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
+list containing four dataframes: outcome_counts, glm estimates, chimera counts, and summary_stats
 }
 \description{
 Estimate hopping rate

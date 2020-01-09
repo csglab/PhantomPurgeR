@@ -34,10 +34,6 @@ estimate_pi_r_hat_matrix <- function(conditional, sample_names, phat) {
   return(pi_r_hat)
 }
 
-#' Compute summary statistics
-#' @param outcome_counts outcome dataset
-#' @param max_r Maximum PCR duplication level to consider
-#' @return list containing two dataframes (glm estimates and chimera counts)
 compute_summary_stats <- function(outcome_counts, phat) {
 
   sample_names <-
@@ -155,10 +151,7 @@ compute_summary_stats <- function(outcome_counts, phat) {
   )
 }
 
-#' Create grouping variables
-#' @param outcome_counts outcome dataset
-#' @param sample_names sample names
-#' @return dataframe of grouping variables
+
 create_grouping_vars <- function(outcome_counts, sample_names) {
   S <- length(sample_names)
 
@@ -177,10 +170,7 @@ create_grouping_vars <- function(outcome_counts, sample_names) {
   return(grouping_vars)
 }
 
-#' Add grouping variables
-#' @param outcome_counts outcome dataset
-#' @param sample_names sample names
-#' @return Datatable of outcome counts
+
 add_vars_to_outcome_counts <-
   function(outcome_counts, sample_names) {
     grouping_vars <-
@@ -192,10 +182,7 @@ add_vars_to_outcome_counts <-
     return(outcome_counts)
   }
 
-#' Create outcome counts
-#' @param read_counts A list of read counts of all the samples
-#' @param joined_counts_filepath If provided, the filepath of the joined readcounts to be saved
-#' @return Datatable of outcome counts
+
 create_outcome_counts <- function(read_counts, sample_names) {
   outcome_counts <-
     read_counts %>%
@@ -213,10 +200,7 @@ create_outcome_counts <- function(read_counts, sample_names) {
 }
 
 
-#' Create chimera counts datatable
-#' @param outcome_counts outcome dataset
-#' @param S number of samples
-#' @return Dataframe of chimera counts
+
 create_chimera_counts <- function(outcome_counts, S) {
   # creating a data table of k_chimera counts
   chimera_counts <-
@@ -253,10 +237,6 @@ create_chimera_counts <- function(outcome_counts, S) {
   return(chimera_counts)
 }
 
-#' Estimate hopping rate
-#' @param outcome_counts outcome dataset
-#' @param max_r Maximum PCR duplication level to consider
-#' @return list of two dataframes (glm estimates and chimera counts)
 fit_glm <- function(chimera_counts, S, max_r, conf_level = 0.99) {
 
   if (is.null(max_r)) {
@@ -304,10 +284,7 @@ fit_glm <- function(chimera_counts, S, max_r, conf_level = 0.99) {
   return(glm_estimates)
 }
 
-#' Update chimera counts data
-#' @param chimera_counts A dataframe of chimera counts
-#' @param glm_estimates A dataframe of GLM estimates
-#' @return A dataframe of chimera counts
+
 update_chimera_counts <- function(chimera_counts, glm_estimates) {
   chimera_counts <-
     chimera_counts %>%
@@ -319,10 +296,11 @@ update_chimera_counts <- function(chimera_counts, glm_estimates) {
   return(chimera_counts)
 }
 
+
 #' Estimate hopping rate
-#' @param out list
+#' @param out list containing read_counts and sample_names
 #' @param max_r Maximum PCR duplication level to consider
-#' @return out list containing three additional dataframes (outcome_counts, glm estimates and chimera counts)
+#' @return list containing four dataframes: outcome_counts, glm estimates, chimera counts, and summary_stats
 #' @export
 estimate_hopping_rate <- function(out, max_r = NULL) {
 

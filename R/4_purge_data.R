@@ -237,11 +237,7 @@ dedup_reads <- function(read_counts, sample_names) {
   return(read_counts)
 }
 
-#' make sparse count matrices
-#' @param umi_counts list of sample data
-#' @param all_genes ref_genes
-#' @param return_discarded return discarded data
-#' @return list of two lists containing retained and discarded data
+
 make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
 
   nsamples <- length(umi_counts)
@@ -298,10 +294,7 @@ get_purge_summary <- function(umi_counts) {
 
 }
 
-#' Purge and save read_counts
-#' @param read_counts read counts
-#' @param sample_names sample names
-#' @return umi_counts dataset
+
 create_umi_counts <- function(read_counts,
                               sample_names) {
 

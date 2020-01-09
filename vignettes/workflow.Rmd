@@ -3,9 +3,9 @@ title: "PhantomPurgeR: Vignette"
 author: "Rick Farouni"
 package: PhantomPurgeR
 date: "`r Sys.Date()`"
-output: html_document
+output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{workflow}
+  %\VignetteIndexEntry{PhantomPurgeR Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

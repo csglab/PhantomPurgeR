@@ -1,6 +1,4 @@
-#' Add outcome variable
-#' @param read_counts A list of read counts of all the samples
-#' @return A dataframe with an outcome variable added
+
 add_outcome_variable <- function(read_counts, sample_names) {
   setDT(read_counts)
 
@@ -13,9 +11,6 @@ add_outcome_variable <- function(read_counts, sample_names) {
   return(read_counts)
 }
 
-#' Rename variables
-#' @param read_counts A list of read counts of all the samples
-#' @return A joined read counts table
 rename_var_data_list <- function(read_counts, sample_names) {
   name_list <- function(x, y) {
     names(x[[1]]) <- y
