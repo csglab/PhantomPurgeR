@@ -6,6 +6,8 @@
 #' @return A named list of filepaths
 #' @export
 get_h5_filenames <- function(input_dir) {
+
+  input_dir <- normalizePath(input_dir)
   metadata <-
     list.files(path = input_dir,
                pattern = "h5",

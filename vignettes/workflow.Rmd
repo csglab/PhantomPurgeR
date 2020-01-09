@@ -24,18 +24,19 @@ library(PhantomPurgeR)
 ### Read filepaths of all h5 files found in input_dir
 
 ```{r}
-input_dir <- system.file("extdata", package = "PhantomPurgeR")
+#input_dir <- system.file("extdata", package = "PhantomPurgeR")
+input_dir <- "./hiseq4000"
 ```
 
 ```{r}
 samples <- get_h5_filenames(input_dir)
+samples
 ```
 
-Change the names of the samples if needed
+Change the names of the samples if the filenames are too long
 
 ```{r}
-names(samples) <- paste0("s", 1:length(samples))
-samples
+#names(samples) <- paste0("s", 1:length(samples))
 ```
 
 # Run PhantomPurgeR workflow
