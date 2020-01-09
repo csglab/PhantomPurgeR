@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>{{ page.title }}</title>
     {% if page.description %}<meta name="description" content="{{ page.description }}">{% endif %}
+    {% if page.keywords %}<meta name="keywords" content="{{ page.keywords }}">{% endif %}
     <meta name="author" content="{{ site.author.name }}">
 
     <!-- Enable responsive viewport -->
@@ -20,6 +21,7 @@
     <link href="{{ ASSET_PATH }}/css/kbroman.css" rel="stylesheet" type="text/css" media="all">
 
     <!-- Le fav and touch icons -->
+    <link rel="SHORTCUT ICON" href="{{ BASE_PATH }}/assets/me.ico"/>
 
     <!-- atom & rss feed -->
     <link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
@@ -32,6 +34,10 @@
       <div class="navbar-inner">
         <div class="container-narrow">
           <a class="brand" href="{{ HOME_PATH }}">{{ site.title }}</a>
+          <ul class="nav">
+              <li><a href="{{ BASE_PATH }}/pages/notebooks.html">Paper</a></li>
+              <li><a href="{{ BASE_PATH }}/pages/rpackage.html">R Package</a></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -41,6 +47,7 @@
       <div class="content">
         {{ content }}
       </div>
+
       <hr>
 
     </div>
