@@ -10,7 +10,7 @@ get_h5_filenames(input_dir)
 \item{input_dir}{The directory in which the molecule_info.h5 files are located}
 }
 \value{
-A named list of filepaths
+samples_filepaths: A named list of samples filepaths
 }
 \description{
 Return filepaths of CellRanger molecule_info.h5 files in directory

@@ -21,22 +21,23 @@ library(PhantomPurgeR)
 
 
 
-### Read filepaths of all h5 files found in input_dir
+### Read filepaths of all h5 files found in the data input folder
+
+The data directory *input_dir* is the filepath of the folder that contains all the molecule_info.h5 files of all the samples that were multiplexed on the same lane. The files can be renamed by sample names (e.g. sample_name.h5) before being loaded or after as shown below. 
 
 ```{r}
-#input_dir <- system.file("extdata", package = "PhantomPurgeR")
 input_dir <- "./hiseq4000"
 ```
 
 ```{r}
-samples <- get_h5_filenames(input_dir)
-samples
+samples_filepaths <- get_h5_filenames(input_dir)
+samples_filepaths
 ```
 
-Change the names of the samples if the filenames are too long
+Change the names of the samples if the filenames are too long. For example, they can be numbered sequentially
 
 ```{r}
-#names(samples) <- paste0("s", 1:length(samples))
+#names(samples_filepaths) <- paste0("s", 1:length(samples_filepaths))
 ```
 
 # Run PhantomPurgeR workflow
@@ -44,7 +45,7 @@ Change the names of the samples if the filenames are too long
 ## (1) Read data
 
 ```{r}
-out <- read10xMolInfoSamples(samples, barcode_length = NULL)
+out <- read10xMolInfoSamples(samples_filepaths)
 ```
 
 ##  (2) Join and merge data

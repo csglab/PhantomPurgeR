@@ -3,11 +3,12 @@
 
 #' Return filepaths of CellRanger molecule_info.h5 files in directory
 #' @param input_dir The directory in which the molecule_info.h5 files are located
-#' @return A named list of filepaths
+#' @return samples_filepaths: A named list of samples filepaths
 #' @export
 get_h5_filenames <- function(input_dir) {
 
   input_dir <- normalizePath(input_dir)
+
   metadata <-
     list.files(path = input_dir,
                pattern = "h5",
@@ -16,10 +17,10 @@ get_h5_filenames <- function(input_dir) {
     mutate(sample_name = tools::file_path_sans_ext(sample_name_ext)) %>%
     mutate(filepath = file.path(input_dir, sample_name_ext))
 
-  molecule_info_filepaths <- metadata$filepath
-  names(molecule_info_filepaths) <- metadata$sample_name
+  samples_filepaths <- metadata$filepath
+  names(samples_filepaths) <- metadata$sample_name
 
-  return(molecule_info_filepaths)
+  return(samples_filepaths)
 }
 
 #' Load data from molecule_info.h5 files produced by 10X Genomics CellRanger software.
