@@ -1,0 +1,696 @@
+---
+title: "PhantomPurgeR: Simulation and Performance Comparison"
+author: "Rick Farouni"
+package: PhantomPurgeR
+date: "`r Sys.Date()`"
+output:
+  html_notebook:
+    df_print: paged
+    code_folding: show
+    toc: yes
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+
+In this notebookd we simulate outcome data and compare the performance of the TOR approach with minimum read fraction (MRF) approach.
+
+
+# Preparations
+
+```{r , message=FALSE}
+library(tidyverse)
+library(poibin)
+library(combinat)
+library(furrr)
+library(data.table)
+library(matrixStats)
+library(rprojroot)
+library(cowplot)
+plan(multiprocess)
+```
+
+```{r echo=TRUE, message=FALSE, results="hide"}
+require(knitr)
+opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+options(future.globals.maxSize= +Inf, future.fork.enable=TRUE)
+```
+
+
+```{r}
+figures_dir <- file.path("./figures")
+```
+
+## Define Functions
+
+
+
+```{r}
+create_data <- function(prob, rmax, nreads){
+  dt <- 
+    tibble(r=1:rmax,
+           s=dgeom(r-1, prob[1]) ) %>% 
+    mutate(s=(s/sum(s))) %>%
+    mutate(rs= r*s)
+  
+  RMR <-sum(dt %>% pull(rs))
+  nmol <- nreads/RMR
+  
+  dt <- 
+    dt %>% 
+    mutate(s= round(nmol*s))%>%
+    select(-rs)
+  
+  return(dt)
+}
+
+
+
+get_product_logsum <- function(x, y) {
+  z_log <- log(x) + log(y)
+  z <- exp(z_log)
+  return(z)
+}
+
+
+generate_outcomes_s <- function(s, p, S, r, pi_r){
+  p_h <- (1 - p) / (S - 1)
+  pvec <- rep(p_h, S)
+  pvec[s] <- p
+  pi_r_s <- pi_r[s]
+  
+  outcomes <- xsimplex(S, r)
+  
+  pmf <- apply(outcomes,
+               2,
+               dmnom,
+               prob = pvec)
+  
+  outcomes <- outcomes  %>% 
+    t() %>%
+    as_tibble( .name_repair = "unique") %>%
+    setNames(paste0("y", 1:S)) %>%
+    mutate(pmf_rs=pmf,
+           pmf_r=get_product_logsum(pmf, pi_r_s))
+  
+  return(outcomes)
+}
+
+
+
+create_grouping_vars <- function(outcomes, S, mrf) {
+  
+  s <- 
+    outcomes %>%
+    pull(s) %>%
+    as.numeric()
+  
+  
+  setDT(outcomes)
+  
+  outcomes[,
+           outcome := do.call(paste, c(.SD, sep = ",")),
+           .SDcols = paste0("y", 1:S)]
+  
+  outcome <-
+    outcomes %>%
+    pull(outcome)
+  
+  outcomes <-
+    outcomes  %>%
+    select(c(paste0("y", 1:S))) %>%
+    as.matrix
+  
+  
+  y_s <- as.integer(outcomes[cbind(seq_along(s), s)] != 0)
+  
+  
+  r <- as.integer(rowSums2(outcomes))
+  k_chimera <- as.integer(S - rowCounts(outcomes, value = 0))
+  fantoms <- k_chimera - y_s
+  
+  
+  
+  s_frac_1 <-
+    apply(cbind(outcomes,r),
+          1,
+          function(x) {
+            y <- which(x[1:S] >=  (x[S + 1] *mrf[1]))
+            y <- unname(y)
+            if (length(y) == 0)
+              y <- 0
+            return(y)
+          })
+  
+  s_frac_2 <-
+    apply(cbind(outcomes,r),
+          1,
+          function(x) {
+            y <- which(x[1:S] >=  (x[S + 1] * mrf[2]))
+            y <- unname(y)
+            if (length(y) == 0)
+              y <- 0
+            return(y)
+          })
+  
+  
+  s_frac_3 <-
+    apply(cbind(outcomes,r),
+          1,
+          function(x) {
+            y <- which(x[1:S] >=  (x[S + 1]* mrf[3]))
+            y <- unname(y)
+            if (length(y) == 0)
+              y <- 0
+            return(y)
+          })
+  
+  grouping_vars <- tibble(outcome=outcome,
+                          r = r,
+                          s_frac_1 = s_frac_1,
+                          s_frac_2 = s_frac_2,
+                          s_frac_3 = s_frac_3,
+                          fantoms =fantoms,
+                          k_chimera = k_chimera)
+  
+  return(grouping_vars)
+}
+
+
+add_vars_to_outcome_counts <- function(outcomes, S, mrf) {
+  
+  grouping_vars <- create_grouping_vars(outcomes,S, mrf) 
+  outcomes <- bind_cols(outcomes, grouping_vars)  
+  
+  return(outcomes)
+  
+}
+
+
+infer_sample_of_origin_outcome <- function(..., pi_r, log_zi, S, p) {
+  y <- c(...)[1:S]
+  log_sample_pi <- log(pi_r)
+  posterior_s <- y * log_zi + log_sample_pi
+  
+  ## normalize to the sample with maximum posterior probability
+  posterior_s <- posterior_s - max(posterior_s)
+  posterior_s <- exp(posterior_s)
+  
+  posterior <- posterior_s / sum(posterior_s)
+  q <- max(posterior)
+  s_hat <- which.max(posterior)
+  
+  out <- list(s_hat = s_hat, q = q)
+  return(out)
+}
+
+
+add_posterior_prob <- function(outcomes, S, p, pi_r) {
+  
+  log_zi <- log((S - 1)) - log(1 / p - 1)
+  
+  posteriors <-
+    future_pmap_dfr(
+      outcomes %>%
+        select(paste0("y", 1:S)),
+      infer_sample_of_origin_outcome,
+      pi_r=pi_r,
+      log_zi = log_zi,
+      S=S,
+      p=p
+    )
+  
+  outcomes <- bind_cols(outcomes %>%
+                          select(-c(paste0("y", 1:S))),
+                        posteriors)
+  
+  return(outcomes)
+  
+}
+
+
+generate_outcomes <- function(...,p, S, mrf){
+  
+  r <- c(...)[1]
+  pi_r <- c(...)[2:(S+1)]
+  
+  
+  outcomes <- future_map_dfr(1:S,
+                             generate_outcomes_s,
+                             p=p,
+                             S=S,
+                             r=r,
+                             pi_r=pi_r,
+                             .id = "s")
+  
+  
+  outcomes <- add_vars_to_outcome_counts(outcomes, S, mrf)
+  
+  
+  
+  outcomes <- add_posterior_prob(outcomes, S, p, pi_r) 
+  
+  
+  outcomes <- 
+    outcomes %>%
+    mutate(s= as.integer(s) ,
+           s_frac_1= as.integer(s_frac_1),
+           s_frac_2= as.integer(s_frac_2),
+           s_frac_3= as.integer(s_frac_3),
+           r=as.integer(r))
+  
+  return(outcomes)
+}
+
+
+evaluate_classification <- function(outcomes) {
+  
+  
+  outcomes <- 
+    outcomes %>%
+    mutate(
+      hit_s= s==s_hat,
+      hit_frac_1= s==s_frac_1,
+      hit_frac_2= s==s_frac_2,
+      hit_frac_3= s==s_frac_3,
+      k_chimera_p=get_product_logsum(k_chimera, pmf),
+      fantoms_p=get_product_logsum(fantoms, pmf),
+      g=(1-(k_chimera-fantoms))*pmf,
+      qr = 1 - q)  
+  
+  g_total <-  
+    outcomes %>%
+    summarise_at(vars(c("g")), sum)  %>%
+    pull(g)
+  
+  outcomes<-
+    outcomes %>%
+    arrange(qr)%>%
+    mutate(
+      o = cumsum(pmf),
+      FP = cumsum(get_product_logsum(
+        qr,
+        pmf
+      )),
+      FN=1 - o + FP-g_total,
+      FPm= last(FP)- FP, # marginal
+      FNm=FN-last(FN), # marginal
+      tor=if_else(FPm <.Machine$double.neg.eps | FNm <.Machine$double.neg.eps,
+                  0,
+                  FNm/FPm),
+      FP_1=case_when(
+        !hit_frac_1 & s_frac_1!=0 ~ pmf,
+        TRUE ~0),
+      FN_1=case_when(s_frac_1==0 & g==0 ~ pmf,
+                     !hit_frac_1 & s_frac_1!=0  & g==0 ~ pmf,
+                     TRUE ~0),
+      FP_2=case_when(
+        !hit_frac_2 & s_frac_2!=0 ~ pmf,
+        TRUE ~0),
+      FN_2=case_when(s_frac_2==0 & g==0 ~ pmf,
+                     !hit_frac_2 & s_frac_2!=0  & g==0 ~ pmf,
+                     TRUE ~0),
+      FP_3=case_when(
+        !hit_frac_3 & s_frac_3!=0 ~ pmf,
+        TRUE ~0),
+      FN_3=case_when(s_frac_3==0 & g==0 ~ pmf,
+                     !hit_frac_3 & s_frac_3!=0  & g==0 ~ pmf,
+                     TRUE ~0))
+  
+  
+  return(outcomes)
+  
+}
+
+compute_classification_metrics <- function(p, pi_r,m_df, torc, mrf){
+  
+  outcomes <-  
+    future_pmap_dfr(pi_r,
+                    generate_outcomes,
+                    p=p,
+                    S=S,
+                    mrf=mrf)
+  
+  outcomes <- 
+    left_join(outcomes ,
+              m_df, 
+              by="r") %>%
+    mutate(
+      pmf= get_product_logsum(pmf_r,m))%>%
+    select(-c("m","pmf_rs","pmf_r")) 
+  
+  outcomes <- evaluate_classification(outcomes) 
+  
+  
+  tor_thresh <-
+    outcomes %>%
+    summarize(tor_thresh = tor[which.max(-pmax(tor, torc))]) %>%
+    pull(tor_thresh)
+  
+  
+  metrics_tor <-
+    outcomes %>%
+    filter(tor == tor_thresh) %>%
+    slice(1)  %>%
+    select(FP, FN, tor) %>%
+    rename(cutoff = "tor") %>%
+    mutate(cutoff = paste0("tor_", str_sub(
+      as.character(cutoff),
+      start = 1,
+      end = 4
+    )))
+  
+  
+  maxfrac_fp <-
+    outcomes %>%
+    summarise_at(vars(starts_with("FP_")), sum) %>%
+    gather(condition, FP) %>%
+    select(FP)
+  
+  maxfrac_fn <-
+    outcomes %>%
+    summarise_at(vars(starts_with("FN_")), sum)  %>%
+    gather(condition, FN) %>%
+    select(FN)
+
+  metrics_dt <- bind_cols(maxfrac_fp,
+                          maxfrac_fn) %>%
+    
+    mutate(cutoff = sprintf("mf_%.2f", mrf)) %>%
+    bind_rows(., metrics_tor) %>%
+    select(cutoff, everything())
+  
+  
+  tor_dt <-
+    outcomes %>%
+    filter(tor < 10 & tor > 1 & g == 0) %>%
+    mutate(tor = round(tor, 4)) %>%
+    group_by(tor) %>%
+    filter(row_number() == 1)
+  
+  
+  return(list(tor_dt=tor_dt,  metrics_dt= metrics_dt))
+}
+
+
+plot_Pi <- function(Pi, Pi_marginal) {
+  p1 <-
+    ggplot(Pi %>%
+             select(
+               -sum_mols
+             ) %>%
+             gather(sample, p, -c("r"))) +
+    geom_line(aes(
+      x = r,
+      y = p,
+      colour = sample
+    ),
+    size = 1,
+    alpha = 1
+    ) +
+    geom_point(
+      data = Pi %>%
+        select(r, m),
+      aes(x = r, y = m),
+      shape = 10,
+      size = 1,
+      alpha = .9
+    ) +
+    theme_bw() +
+    geom_hline(
+      data = Pi_marginal,
+      aes(
+        yintercept = p_molecs,
+        colour = sample
+      ),
+      size = 0.3,
+      linetype = "longdash",
+      alpha = 1
+    ) +
+    labs(
+      x = "r (PCR duplicates)",
+      y = "proportion"
+    ) +
+    scale_colour_viridis_d(
+      option = "inferno",
+      direction = -1
+    ) +
+    theme(
+      axis.title.x = element_text(size = rel(1.4)),
+      axis.title.y = element_text(size = rel(1.4)),
+      axis.text = element_text(size = rel(1.3)),
+      legend.title = element_text(size = rel(1.1), face = "bold"),
+      legend.text = element_text(size = rel(1.1))
+    )
+  return(p1)
+}
+
+
+plot_trade_off <- function(condition, condition_name){
+  
+  condition$metrics_dt$cutoff[4] <- "tor*"
+  
+  p <- ggplot(condition$tor_dt) + 
+    geom_line(
+      aes(x = FP,
+          y = FN),
+      colour="grey")+
+    geom_point(
+      aes(x = FP,
+          y = FN,
+          color=tor),
+      size=.5,
+      alpha=.8)+
+    scale_color_viridis_c() +
+    labs(x="False Positives",
+         y="False Negatives") +
+    geom_point(data=condition$metrics_dt,
+               aes(x = FP,
+                   y = FN,
+                   shape=cutoff),
+               size=1.8,
+               colour="brown")+
+    theme_bw()  +
+    #scale_y_sqrt()+
+    theme(
+      legend.title = element_text(face = "bold")
+    ) +
+    expand_limits(x = c(0, .006), y = c(0, 0.04))
+  
+  legend <- get_legend(p)
+  p <- p + theme(legend.position = "none")
+  
+  p <- ggdraw() +
+    draw_plot(p, 0, 0, 1, 1) +
+    draw_label(paste0("SIHR=", condition_name),
+               x = 0,
+               y = 1,
+               vjust = 2,
+               hjust = -1.8,
+               size = 12,
+               fontface = "italic"
+    )
+  
+  return(list(p=p, legend=legend))
+}
+
+plot_trade_off_all <- function(metrics_list) {
+  
+  p_tradeoff <- imap(metrics_list, plot_trade_off)
+  
+  p_list <- 
+    p_tradeoff %>%
+    map(list("p"))
+  
+  legend_list <- 
+    p_tradeoff %>% 
+    map(list("legend"))
+  
+  p_tradeoff_all <- 
+    plot_grid(
+      plot_grid(p_list[[1]],
+                p_list[[2]],
+                p_list[[3]], 
+                p_list[[4]],
+                align="hv",
+                axis ="tblr"),
+      plot_grid(NULL,
+                legend_list[[4]], 
+                NULL,
+                ncol=1),
+      rel_widths=c(1, 0.1))
+  
+  return(p_tradeoff_all)
+  
+}
+
+simulate_pi <- function(prob , rmax, nreads=3e7 ){
+  
+  sample_names <- paste0("s", 1:length(prob))
+  names(prob)  <- sample_names 
+  
+  dt <-
+    map_dfr(prob, 
+            create_data,
+            rmax=rmax,
+            nreads=nreads,
+            .id="sample") %>%
+    spread(sample, s)
+  
+  dt_summary <-
+    dt %>%
+    select(-r) %>%
+    summarize_all(sum) %>%
+    gather(sample, nmols) %>%
+    mutate(RMR=nreads/nmols,
+           pgeom_prob=prob,
+           p_molecs=nmols/sum(nmols))
+  
+  dt <- dt %>%
+    mutate(sum_mols = rowSums(.[sample_names])) %>%
+    mutate_at(vars(sample_names), ~ . / sum_mols) %>%
+    mutate(m= sum_mols/sum(sum_mols))
+  
+  return(list(Pi=dt, summary=dt_summary))
+}
+
+
+simulate_data <- function(prob, pvec, rmax, torc, mrf){
+  pi_out <- simulate_pi(prob, rmax)
+  m_df <- pi_out$Pi %>% select(r, m)
+  pi_r <- pi_out$Pi %>% select(-m, -sum_mols)
+  
+  metrics_list <-
+    map(pvec,
+        compute_classification_metrics,
+        pi_r=pi_r,
+        m_df=m_df,
+        torc=torc,
+        mrf=mrf)
+  
+  return(list(metrics_list=metrics_list, pi_out=pi_out))
+}
+```
+
+
+## Simulate Molecular Complexity Profile 
+
+
+### Set parameters
+
+```{r}
+S <- 4  # sample number
+rmax <- 30 # PCR amplification limit
+torc <- 3 # Trade off cutoff
+mrf <- c(0.6, 0.8, 0.9) #three choices for the minimum read fraction (MRF) thresholds. 0.8 is the default
+pvec <- c(0.982, 0.986, 0.990, 0.994) # probability of not hopping (4 settings)
+names(pvec) <- c(0.018, 0.014, 0.010, 0.006) # name vector with SIHR (i.e. hopping rate or 1-pvec) 
+pvec 
+```
+
+
+### Simulate data for parameter setting 1
+
+Set the parameter values for the truncated geometric distributions for the S samples
+
+```{r}
+prob1 <- c( 0.45, 0.4, 0.1,  0.05) 
+```
+
+```{r message=FALSE, warning=FALSE}
+out_1 <- simulate_data(prob1, pvec,rmax, torc, mrf) 
+```
+
+```{r}
+out_1$pi_out$summary
+```
+
+Plot the molecular proportions complexity profile
+
+
+```{r fig.width=12}
+plot_Pi(out_1$pi_out$Pi, out_1$pi_out$summary)
+```
+
+Show the results
+
+```{r}
+out_1$metrics_list
+```
+
+Plot the results
+
+
+```{r, fig.width=12}
+
+p_trade_off_1 <- plot_trade_off_all(out_1$metrics_list) 
+p_trade_off_1 
+```
+
+# save plot
+
+```{r}
+save_plot(file.path(figures_dir, "simulation_tradoff01.pdf"), 
+          p_trade_off_1,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 2, # and 2 rows
+          base_height=4,
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1
+)
+```
+
+
+### Simulate data for parameter setting 2
+
+```{r}
+prob2 <- c( 0.45, 0.42, 0.40,  0.05)
+```
+
+```{r message=FALSE, warning=FALSE}
+out_2 <- simulate_data(prob2, pvec,rmax, torc, mrf) 
+```
+
+```{r}
+out_2$pi_out$summary
+```
+
+
+```{r fig.width=12}
+plot_Pi(out_2$pi_out$Pi, out_2$pi_out$summary)
+```
+
+
+```{r}
+out_2$metrics_list
+```
+
+## Plot results
+
+
+```{r, fig.width=12}
+
+p_trade_off_2 <- plot_trade_off_all(out_2$metrics_list) 
+p_trade_off_2
+```
+
+# save plot
+
+```{r}
+save_plot(file.path(figures_dir, "simulation_tradoff02.pdf"), 
+          p_trade_off_2,
+          ncol = 3, # we're saving a grid plot of 2 columns
+          nrow = 2, # and 2 rows
+          base_height=4,
+          # each individual subplot should have an aspect ratio of 1.3
+          base_aspect_ratio = 1
+)
+```
+
+
+```{r}
+sessionInfo()
+```
+
+
