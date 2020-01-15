@@ -24,6 +24,10 @@ description: Paper's analysis
 
 * <a href="{{ BASE_PATH }}/PhantomPurgeR/assets/notebooks/validation_hiseq4000_2.nb.html" target="_blank"> Validation Analysis Notebook Part II</a>.
 
+#### Simulation analysis
+
+* <a href="{{ BASE_PATH }}/PhantomPurgeR/assets/notebooks/simulation.html" target="_blank"> Simulation study</a>.
+
 *******
 ******
 
