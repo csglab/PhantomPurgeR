@@ -28,16 +28,29 @@ description: Paper's analysis
 
 * <a href="{{ BASE_PATH }}/PhantomPurgeR/assets/notebooks/simulation.html" target="_blank"> Simulation study</a>.
 
+
+#### Downstream analysis
+
+* <a href="{{ BASE_PATH }}/PhantomPurgeR/assets/notebooks/downstream_analysis_umap.html" target="_blank"> Effect of Purging on downstream analysis (UMAP) </a>.
+
 *******
 ******
 
 Citation
 -------
 
-Statistical modeling, estimation, and remediation of sample index hopping in multiplexed droplet-based single-cell RNA-seq data. ([R. Farouni](http://rfarouni.github.io/) and [H. S. Najafabadi](http://csg.lab.mcgill.ca/), 2019). 
+Statistical modeling, estimation, and remediation of sample index hopping in multiplexed droplet-based single-cell RNA-seq data
+Rick Farouni, Haig Djambazian, Jiannis Ragoussis, Hamed S. Najafabadi. bioRxiv 617225; doi: https://doi.org/10.1101/617225.
+
+The bioRxiv preprint describing the approach can be accessed <a href="https://www.biorxiv.org/content/10.1101/617225v5" target="_blank">here</a>.
 
 
-The bioRxiv preprint describing the approach can be accessed <a href="https://www.biorxiv.org/content/10.1101/617225v1" target="_blank">here</a>.
+Contact
+-------
+
+[R. Farouni](http://rfarouni.github.io/)  and [H. S. Najafabadi](http://csg.lab.mcgill.ca/).
+
+
 
 
 ****
