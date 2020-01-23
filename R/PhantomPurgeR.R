@@ -32,3 +32,5 @@
 #' @importFrom dplyr left_join group_by ungroup mutate mutate_if mutate_at select filter summarize rename_at
 #'  summarize_at summarize_all bind_cols bind_rows add_tally tally slice pull rename vars top_n n arrange everything matches
 NULL
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
