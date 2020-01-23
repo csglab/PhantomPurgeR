@@ -2,18 +2,28 @@
 % Please edit documentation in R/3_estimate_hopping_rate.R
 \name{estimate_hopping_rate}
 \alias{estimate_hopping_rate}
-\title{Estimate hopping rate}
+\title{Step 4: estimate the sample index hopping rate (SIHR)}
 \usage{
 estimate_hopping_rate(out, max_r = NULL)
 }
 \arguments{
-\item{out}{list containing read_counts and sample_names}
+\item{out}{A list \emph{out} containing read_counts and sample_names.}
 
-\item{max_r}{Maximum PCR duplication level to consider}
+\item{max_r}{Maximum PCR duplication level to consider. The default considers all observed levels.}
 }
 \value{
-list containing four dataframes: outcome_counts, glm estimates, chimera counts, and summary_stats
+A list \emph{out} with a total of 6 elements: read_counts, sample_names, outcome_counts, glm estimates, chimera counts, and summary_stats.
 }
 \description{
-Estimate hopping rate
+Step 4: estimate the sample index hopping rate (SIHR)
+}
+\details{
+Given that the number of observations
+in the joined read counts datatable tends to be in the hundreds of millions,
+observations with similar outcomes are tallied to produce an outcome counts datatable which in turn
+is used to create a chimera counts datatable that tallies the number of chimeric and tho non-chimeric at each PCR duplication level r.
+The chimera counts datatable is then used as input to the GLM Model in order to estimate, from the proportion of chimeric observations,
+the sample index hopping rate. A list of summary statistics is also returned containing
+the conditional and marginal distributions of reads, and the
+proportion of molecules across samples \eqn{\pi_r} for each each PCR duplication level r.
 }

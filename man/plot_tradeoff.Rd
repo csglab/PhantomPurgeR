@@ -10,8 +10,6 @@ plot_tradeoff(out, dataset_name)
 \item{out}{output list}
 
 \item{dataset_name}{name of dataset for plotting}
-
-\item{x_lim}{extent of x axis}
 }
 \value{
 ggplot object

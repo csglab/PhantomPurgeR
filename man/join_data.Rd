@@ -2,16 +2,22 @@
 % Please edit documentation in R/2_join_data.R
 \name{join_data}
 \alias{join_data}
-\title{Join transciptome mapped data by cell, umi, and gene}
+\title{Step 3: Create a datatable of gene-mapped read counts}
 \usage{
 join_data(out)
 }
 \arguments{
-\item{A}{list of read counts data for all samples}
+\item{out}{A list of read counts data for all samples.}
 }
 \value{
-A  joined read counts table with an outcome variable column
+A list \emph{out} containing sample_names and read_counts (a datatable of joined read counts table with an outcome variable column)
 }
 \description{
-Join transciptome mapped data by cell, umi, and gene
+Step 3: Create a datatable of gene-mapped read counts
+}
+\details{
+The read counts is created by joining data from all samples into a single datatable
+in which each row contains the mapped read counts across all the samples for each unique cell
+barcode-gene-umi combination that make up the three first columns. An outcome character
+variable (e.g. "(3,0,2,1)") to group the observations into unique outcomes is added as the last column.
 }

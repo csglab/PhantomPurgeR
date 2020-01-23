@@ -2,7 +2,7 @@
 % Please edit documentation in R/4_purge_data.R
 \name{phantom_purger}
 \alias{phantom_purger}
-\title{Run Purge Phantoms workflow}
+\title{A function wraper for running the PhantomPurgeR workflow in a single step.}
 \usage{
 phantom_purger(
   samples,
@@ -30,5 +30,5 @@ phantom_purger(
 out list pf umi_counts, metadata, and summary statistics
 }
 \description{
-Run Purge Phantoms workflow
+A function wraper for running the PhantomPurgeR workflow in a single step.
 }

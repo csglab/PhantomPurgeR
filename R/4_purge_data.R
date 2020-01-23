@@ -1,8 +1,7 @@
 
 get_product_logsum <- function(x, y) {
-
-   z_log <- log(x) + log(y)
-   z <- exp(z_log)
+  z_log <- log(x) + log(y)
+  z <- exp(z_log)
   return(z)
 }
 
@@ -81,7 +80,6 @@ reassign_reads_outcome <- function(outcome_counts, S, sample_names) {
 reassign_reads <- function(outcome_counts,
                            pi_r_hat,
                            phat) {
-
   sample_names <-
     setdiff(
       colnames(outcome_counts),
@@ -118,14 +116,14 @@ get_threshold <- function(outcome_counts, summary_stats) {
     filter(retain) %>%
     arrange(-qr, tor) %>%
     slice(1:2) %>%
-    arrange(-tor)  %>%
+    arrange(-tor) %>%
     mutate(approach = c("torc_before", "discard_torc"))
 
 
   next_thresh <-
     outcome_counts %>%
     filter(!retain) %>%
-    arrange(qr, tor)  %>%
+    arrange(qr, tor) %>%
     slice(1) %>%
     mutate(approach = c("torc_after"))
 
@@ -238,8 +236,7 @@ dedup_reads <- function(read_counts, sample_names) {
 }
 
 
-make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
-
+make_count_matrices <- function(umi_counts, all_genes, return_discarded = TRUE) {
   nsamples <- length(umi_counts)
   retained <- discarded <- vector("list", nsamples)
   names(retained) <- names(discarded) <- names(umi_counts)
@@ -249,7 +246,7 @@ make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
 
     cur_sample <-
       cur_sample %>%
-      filter(retained +purged> 0 )
+      filter(retained + purged > 0)
 
     cur_cells <- cur_sample$cell
     all_cells <- sort(unique(cur_cells))
@@ -257,20 +254,21 @@ make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
     cur_values_retained <- cur_sample$retained
 
     retained[[i]] <- makeCountMatrix(cur_genes,
-                                     cur_cells,
-                                     all.genes = all_genes,
-                                     all.cells = all_cells,
-                                     value=cur_values_retained)
+      cur_cells,
+      all.genes = all_genes,
+      all.cells = all_cells,
+      value = cur_values_retained
+    )
 
     if (return_discarded) {
-      cur_values_purged   <- cur_sample$purged
+      cur_values_purged <- cur_sample$purged
       discarded[[i]] <- makeCountMatrix(cur_genes,
-                                        cur_cells,
-                                        all.genes = all_genes,
-                                        all.cells = all_cells,
-                                        value=cur_values_purged)
+        cur_cells,
+        all.genes = all_genes,
+        all.cells = all_cells,
+        value = cur_values_purged
+      )
     }
-
   }
   out <- list(retained = retained)
   if (return_discarded) {
@@ -281,23 +279,22 @@ make_count_matrices <- function(umi_counts, all_genes, return_discarded=TRUE ) {
 
 
 get_purge_summary <- function(umi_counts) {
-
   purge_summary <-
     umi_counts %>%
     select(c("sample", "purged_phantom", "purged_real", "retained")) %>%
     group_by(sample) %>%
-    summarize_all(~sum(.) ) %>%
-    mutate(umi_total= purged_phantom + purged_real + retained,
-           phantom_prop= purged_phantom/umi_total) %>%
+    summarize_all(~ sum(.)) %>%
+    mutate(
+      umi_total = purged_phantom + purged_real + retained,
+      phantom_prop = purged_phantom / umi_total
+    ) %>%
     select(sample, umi_total, retained, purged_real, purged_phantom, phantom_prop)
   return(purge_summary)
-
 }
 
 
 create_umi_counts <- function(read_counts,
                               sample_names) {
-
   S <- length(sample_names)
 
   read_counts <- dedup_reads(read_counts, sample_names)
@@ -312,9 +309,9 @@ create_umi_counts <- function(read_counts,
   setDT(read_counts)
   umi_counts <-
     read_counts[, lapply(.SD, sum),
-                keyby = "cell,gene,retain",
-                .SDcols = -c("umi")
-                ]
+      keyby = "cell,gene,retain",
+      .SDcols = -c("umi")
+    ]
 
   # tranforming cell-gene molecule tally table into long format
 
@@ -335,8 +332,8 @@ create_umi_counts <- function(read_counts,
 
   umi_counts <-
     left_join(umi_counts,
-              sample_key,
-              by = "sample"
+      sample_key,
+      by = "sample"
     )
 
   umi_counts <-
@@ -352,10 +349,10 @@ create_umi_counts <- function(read_counts,
       retain = NULL
     )
 
-  return(umi_counts )
+  return(umi_counts)
 }
 
-split_counts_into_list <- function(umi_counts){
+split_counts_into_list <- function(umi_counts) {
   sample_index <-
     umi_counts %>%
     pull(sample)
@@ -363,9 +360,9 @@ split_counts_into_list <- function(umi_counts){
   umi_counts <-
     umi_counts %>%
     mutate(
-      purged=purged_phantom+purged_real,
-      purged_phantom=NULL,
-      purged_real=NULL,
+      purged = purged_phantom + purged_real,
+      purged_phantom = NULL,
+      purged_real = NULL,
       sample = NULL
     )
 
@@ -376,14 +373,13 @@ split_counts_into_list <- function(umi_counts){
   return(umi_counts)
 }
 
-merge_counts_outcomes <- function(read_counts, outcome_counts, sample_names){
-
+merge_counts_outcomes <- function(read_counts, outcome_counts, sample_names) {
   read_counts <-
     left_join(read_counts %>%
-                select(outcome, cell, umi, gene, sample_names),
-              outcome_counts %>%
-                select(c("outcome", "retain", paste0(sample_names, "_hat"))),
-              by = c("outcome")
+      select(outcome, cell, umi, gene, sample_names),
+    outcome_counts %>%
+      select(c("outcome", "retain", paste0(sample_names, "_hat"))),
+    by = c("outcome")
     ) %>%
     select(-outcome)
 
@@ -391,18 +387,35 @@ merge_counts_outcomes <- function(read_counts, outcome_counts, sample_names){
   return(read_counts)
 }
 
-#' Purge Phantoms
+#' Step 5: Reassign hopped reads and purges phantom molecules
 #' @param out out from previous steps
 #' @param torc TOR cutoff
 #' @param return_readcounts If true the joined readcounts is returned
 #' @param return_discarded return discarded data
-#' @return out list with additional objects; umi_counts and summary_stats
+#' @return A the initial list *out* with umi_counts, summary_stats added.
+#' @details For each outcome, the conditional posterior probability \eqn{q|y} of the possible true
+#'  samples of origin is computed  by plugging in  \eqn{\pi_r}, the estimated
+#'  proportion of molecules across samples. The index of the sample with the maximum posterior
+#'  probability along with posterior probability itself is added to the original joined read count table.
+#'  The predicted true sample of origin and its associated posterior probability is then used to reassign
+#'  reads to their predicted sample of origin.
+#'
+#'  In order to remove predicted phantom molecules from the data while minimizing the rate of false positives and false negatives,
+#'  the Trade-Off Ratio (TOR) statistic is computed by dividing the marginal increase in FNs over the marginal decrease
+#'  of FPs for each observed unique \eqn{qr*} value. The cutoff \eqn{TOR*} that gets effectively chosen would correspond to the largest
+#'  observed TOR value not exceeding the preset TOR cutoff value (default value is 3). All molecules with corresponding TOR values
+#'  strictly less than  \eqn{TOR*} cutoff - not TOR cutoff- are discarded. For example,  if we have \eqn{tor= (0.1, 0.5, 2.9, 4.1, ...)}
+#'  and TOR cutoff=3, then \eqn{TOR*} cutoff=2.9 and predicted real molecules corresponding to \eqn{tor=0.1} and \eqn{tor=0.5} are discarded.
+#'  To purge the data, the read counts are first deduplicated to obtain a table of molecule (i.e. UMI) counts.
+#'
+#'  After purging, the molecule counts are collapsed over gene labels to produce a gene-by-cell umi-count expression matrices
+#'  for all the samples sequenced in the same lane.
+#' @order 5
 #' @export
-purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=TRUE) {
-
+purge_phantoms <- function(out, torc, return_readcounts = FALSE, return_discarded = TRUE) {
   sample_names <- out$sample_names
   outcome_counts <- out$outcome_counts
-  summary_stats <-  out$summary_stats
+  summary_stats <- out$summary_stats
 
   tic("Purging phantom molecules. Step 1: reassigning hopped reads")
 
@@ -428,9 +441,11 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 
   tic("Purging phantom molecules. Step 3: marking retained observations in read counts table")
 
-  out$read_counts <- merge_counts_outcomes(out$read_counts,
-                                           outcome_counts,
-                                           sample_names)
+  out$read_counts <- merge_counts_outcomes(
+    out$read_counts,
+    outcome_counts,
+    sample_names
+  )
   toc()
 
 
@@ -442,7 +457,7 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 
   umi_counts <- create_umi_counts(out$read_counts, sample_names)
 
-  summary_stats$purge_summary  <- get_purge_summary(umi_counts)
+  summary_stats$purge_summary <- get_purge_summary(umi_counts)
 
 
 
@@ -454,8 +469,9 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
   all_genes <- out$ref_genes
 
   umi_counts <- make_count_matrices(umi_counts,
-                                    all_genes,
-                                    return_discarded=return_discarded )
+    all_genes,
+    return_discarded = return_discarded
+  )
 
   out$summary_stats <- summary_stats
   out$outcome_counts <- outcome_counts
@@ -466,12 +482,12 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
     out$read_counts <- NULL
   }
 
-  return(c( list(umi_counts=umi_counts), out))
+  return(c(list(umi_counts = umi_counts), out))
 }
 
 
 
-#' Run Purge Phantoms workflow
+#' A function wraper for running the PhantomPurgeR workflow in a single step.
 #' @param samples A named list of filepaths
 #' @param torc TOR cutoff
 #' @param max_r Maximum PCR duplication level to consider
@@ -480,19 +496,15 @@ purge_phantoms <- function(out, torc, return_readcounts=FALSE, return_discarded=
 #' @param return_discarded return discarded data
 #' @return out list pf umi_counts, metadata, and summary statistics
 #' @export
-phantom_purger <- function(samples, torc, max_r = NULL, barcode_length=NULL, return_readcounts=FALSE, return_discarded=TRUE) {
-
+phantom_purger <- function(samples, torc, max_r = NULL, barcode_length = NULL, return_readcounts = FALSE, return_discarded = TRUE) {
   out <- read10xMolInfoSamples(samples, barcode_length = barcode_length)
   out <- join_data(out)
   out <- estimate_hopping_rate(out, max_r = max_r)
   out <- purge_phantoms(out,
-                        torc=torc,
-                        return_readcounts=return_readcounts,
-                        return_discarded=return_discarded)
+    torc = torc,
+    return_readcounts = return_readcounts,
+    return_discarded = return_discarded
+  )
 
   return(out)
 }
-
-
-
-

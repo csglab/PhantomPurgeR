@@ -2,18 +2,24 @@
 % Please edit documentation in R/1_load_data.R
 \name{read10xMolInfoSamples}
 \alias{read10xMolInfoSamples}
-\title{Load data from molecule_info.h5 files produced by 10X Genomics CellRanger software.}
+\title{Step 2: load data from the molecule_info.h5 files}
 \usage{
 read10xMolInfoSamples(samples, barcode_length = NULL)
 }
 \arguments{
-\item{samples}{A named list of filepaths}
+\item{samples}{A named list of filepaths.}
 
-\item{barcode_length}{the length of the cell barcode for v2 data}
+\item{barcode_length}{the length of the cell barcode for v2 data.}
 }
 \value{
-lists of cell, gene, umi, read count, and ref_genes variables
+lists of cell, gene, umi, read count, and ref_genes variables.
 }
 \description{
-Load data from molecule_info.h5 files produced by 10X Genomics CellRanger software.
+Step 2: load data from the molecule_info.h5 files
+}
+\details{
+For each sample, the function loads from the \emph{molecule_info.h5} file the data corresponding
+to the following four fields: cell-barcode, gene, umi, and read. The genes field containing
+the reference gene names is also read from the first sample on the assumption that this field
+is identical across the samples - as should be the case.
 }

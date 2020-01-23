@@ -1,18 +1,21 @@
 
-
-
-#' Return filepaths of CellRanger molecule_info.h5 files in directory
-#' @param input_dir The directory in which the molecule_info.h5 files are located
-#' @return samples_filepaths: A named list of samples filepaths
+#' Step 1: return named list of sample filepaths
+#' @param input_dir The directory in which the *molecule_info.h5* files are located.
+#' @return A named list of samples filepaths.
+#' @details  The function read *molecule_info.h5* files produced
+#' by 10X Genomics CellRanger software found in user-provided *input_dir*. Either rename the files in the *input_dir* folder
+#' as *{sample_name}.h5* before or rename the named list after.
+#' @order 1
 #' @export
 get_h5_filenames <- function(input_dir) {
-
   input_dir <- normalizePath(input_dir)
 
   metadata <-
-    list.files(path = input_dir,
-               pattern = "h5",
-               recursive = TRUE) %>%
+    list.files(
+      path = input_dir,
+      pattern = "h5",
+      recursive = TRUE
+    ) %>%
     enframe(name = NULL, value = "sample_name_ext") %>%
     mutate(sample_name = tools::file_path_sans_ext(sample_name_ext)) %>%
     mutate(filepath = file.path(input_dir, sample_name_ext))
@@ -23,13 +26,17 @@ get_h5_filenames <- function(input_dir) {
   return(samples_filepaths)
 }
 
-#' Load data from molecule_info.h5 files produced by 10X Genomics CellRanger software.
-#' @param samples A named list of filepaths
-#' @param barcode_length the length of the cell barcode for v2 data
-#' @return lists of cell, gene, umi, read count, and ref_genes variables
+#' Step 2: load data from the molecule_info.h5 files
+#' @param samples A named list of filepaths.
+#' @param barcode_length the length of the cell barcode for v2 data.
+#' @return lists of cell, gene, umi, read count, and ref_genes variables.
+#' @details For each sample, the function loads from the *molecule_info.h5* file the data corresponding
+#' to the following four fields: cell-barcode, gene, umi, and read. The genes field containing
+#' the reference gene names is also read from the first sample on the assumption that this field
+#' is identical across the samples - as should be the case.
+#' @order 2
 #' @export
-read10xMolInfoSamples <- function (samples, barcode_length = NULL)
-{
+read10xMolInfoSamples <- function(samples, barcode_length = NULL) {
   tic("Loading samples data from molecule_info.h5 files produced by 10X Genomics CellRanger software")
 
   ref_genes <- NULL

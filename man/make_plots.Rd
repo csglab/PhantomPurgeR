@@ -2,7 +2,7 @@
 % Please edit documentation in R/5_plot_data.R
 \name{make_plots}
 \alias{make_plots}
-\title{Make plots}
+\title{Step 6: make diagnostic plots}
 \usage{
 make_plots(out, dataset_name, x_lim = 160, legend_rel_width = 0.2)
 }
@@ -19,5 +19,8 @@ make_plots(out, dataset_name, x_lim = 160, legend_rel_width = 0.2)
 list of ggplot objects
 }
 \description{
-Make plots
+Step 6: make diagnostic plots
+}
+\details{
+This is a wraper functions that return three plots: molecular proportions, complexity profile, model fit, and TOR curves plots
 }
