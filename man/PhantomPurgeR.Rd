@@ -3,14 +3,14 @@
 \docType{package}
 \name{PhantomPurgeR}
 \alias{PhantomPurgeR}
-\title{PhantomPurgeR Workflow
-See workflow vignettes on package's \href{https://csglab.github.io/PhantomPurgeR/pages/rpackage.html}{website}.}
+\title{PhantomPurgeR Workflow}
 \description{
 PhantomPurgeR Workflow
-See workflow vignettes on package's \href{https://csglab.github.io/PhantomPurgeR/pages/rpackage.html}{website}.
 }
 \details{
-Description of the workflow steps
+See workflow vignettes on package's \href{https://csglab.github.io/PhantomPurgeR/pages/rpackage.html}{website}.
+
+Description of the workflow steps.
 \enumerate{
 \item  \code{\link{get_h5_filenames}}
 \item  \code{\link{read10xMolInfoSamples}}
