@@ -4,9 +4,14 @@ title: R Package
 description: Package Vignette
 ---
 
+*****
+
 #### Github Repository
 
-To download and install the package, please visit * <a href="https://github.com/csglab/PhantomPurgeR" target="_blank"> the package repository </a>.
+To download and install the package, please visit  <a href="https://github.com/csglab/PhantomPurgeR" target="_blank"> the package repository </a>.
+
+*****
+
 
 #### PhantomPurgeR Workflow Vignettes
 
