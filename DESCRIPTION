@@ -1,8 +1,8 @@
 Package: PhantomPurgeR
 Type: Package
 Title: PhantomPurgeR
-Version: 0.99.0
-Date: 2019-12-13
+Version: 1.0.0
+Date: 2020-06-20
 Authors@R: 
     person(given = "Rick",
            family = "Farouni",
@@ -29,7 +29,7 @@ Imports:
     broom,
     matrixStats,
     tictoc
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 Suggests: 
     knitr,

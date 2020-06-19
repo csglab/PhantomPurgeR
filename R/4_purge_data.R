@@ -492,13 +492,16 @@ purge_phantoms <- function(out, torc, return_readcounts = FALSE, return_discarde
 #' @param torc TOR cutoff
 #' @param max_r Maximum PCR duplication level to consider
 #' @param barcode_length the length of the cell barcode for v2 data
+#' @param min_umi_cell The minimum number of UMIs associated with a cell barcode. Barcodes with fewer UMIs are discarded.
+#'  Default is 1 (i.e. all cell barcodes are retained).
+#'  For large datasets with many samples set to a larger value (50-200) to reduce memory requirements.
 #' @param return_readcounts If true the joined readcounts is returned
 #' @param return_discarded return discarded data
 #' @return out list pf umi_counts, metadata, and summary statistics
 #' @export
-phantom_purger <- function(samples, torc, max_r = NULL, barcode_length = NULL, return_readcounts = FALSE, return_discarded = TRUE) {
+phantom_purger <- function(samples, torc, max_r = NULL, barcode_length = NULL, min_umi_cell=1, return_readcounts = FALSE, return_discarded = TRUE) {
   out <- read10xMolInfoSamples(samples, barcode_length = barcode_length)
-  out <- join_data(out)
+  out <- join_data(out, min_umi_cell)
   out <- estimate_hopping_rate(out, max_r = max_r)
   out <- purge_phantoms(out,
     torc = torc,

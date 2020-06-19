@@ -4,9 +4,6 @@
 \name{PhantomPurgeR}
 \alias{PhantomPurgeR}
 \title{PhantomPurgeR Workflow}
-\description{
-PhantomPurgeR Workflow
-}
 \details{
 See workflow vignettes on package's \href{https://csglab.github.io/PhantomPurgeR/pages/rpackage.html}{website}.
 

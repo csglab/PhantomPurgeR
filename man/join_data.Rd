@@ -4,10 +4,14 @@
 \alias{join_data}
 \title{Step 3: Create a datatable of gene-mapped read counts}
 \usage{
-join_data(out)
+join_data(out, min_umi_cell = 1)
 }
 \arguments{
 \item{out}{A list of read counts data for all samples.}
+
+\item{min_umi_cell}{The minimum number of UMIs associated with a cell barcode. Barcodes with fewer UMIs are discarded.
+Default is 1 (i.e. all cell barcodes are retained).
+For large datasets with many samples set to a larger value (50-200) to reduce memory requirements.}
 }
 \value{
 A list \emph{out} containing sample_names and read_counts (a datatable of joined read counts table with an outcome variable column)

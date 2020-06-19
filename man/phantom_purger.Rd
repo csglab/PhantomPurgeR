@@ -9,6 +9,7 @@ phantom_purger(
   torc,
   max_r = NULL,
   barcode_length = NULL,
+  min_umi_cell = 1,
   return_readcounts = FALSE,
   return_discarded = TRUE
 )
@@ -21,6 +22,10 @@ phantom_purger(
 \item{max_r}{Maximum PCR duplication level to consider}
 
 \item{barcode_length}{the length of the cell barcode for v2 data}
+
+\item{min_umi_cell}{The minimum number of UMIs associated with a cell barcode. Barcodes with fewer UMIs are discarded.
+Default is 1 (i.e. all cell barcodes are retained).
+For large datasets with many samples set to a larger value (50-200) to reduce memory requirements.}
 
 \item{return_readcounts}{If true the joined readcounts is returned}
 
