@@ -13,7 +13,7 @@ The optimal purging of phantom molecules in multiplexed droplet-based single-cel
 Website
 ---------
 
-The paper's [website](https://csglab.github.io/phantom_purge/index.html) hosts code and R Markdown notebooks implementing the statistical modeling approach
+The paper's [website](https://csglab.github.io/PhantomPurgeR/) hosts code and R Markdown notebooks implementing the statistical modeling approach
 
 ## Installation
 
