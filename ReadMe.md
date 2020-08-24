@@ -1,4 +1,4 @@
-# Phantom Purge
+# PhantomPurgeR
 
 Summary
 -------
@@ -16,7 +16,7 @@ The optimal purging of phantom molecules in multiplexed droplet-based single-cel
 Website
 ---------
 
-The paper's [website](https://csglab.github.io/phantom_purge/index.html) hosts code and R Markdown notebooks implementing the statistical modeling approach.
+The paper's [website](https://csglab.github.io/PhantomPurgeR/) hosts code and R Markdown notebooks implementing the statistical modeling approach.
 
 
 Validation Data
@@ -56,5 +56,5 @@ where `${dataset_name}` is the name of the folder containing all the *molecule_i
 Contact
 ---------
 
-We use GitHub [issues](https://github.com/csglab/phantom_purge/issues) for tracking requests and bugs. Please submit an new issue if you any comment or you would like to report a software bug.
+We use GitHub [issues](https://github.com/csglab/PhantomPurgeR/issues) for tracking requests and bugs. Please submit an new issue if you any comment or you would like to report a software bug.
  
