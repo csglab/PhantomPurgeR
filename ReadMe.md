@@ -10,7 +10,8 @@ Paper
 
 The bioRxiv preprint describing the approach can be accessed [here](https://www.biorxiv.org/content/10.1101/617225v1).
 
-The optimal purging of phantom molecules in multiplexed droplet-based single-cell RNA-seq data. ([R. Farouni](http://rfarouni.github.io/) and [H. S. Najafabadi](http://csg.lab.mcgill.ca/), 2019)
+
+[Farouni, R., Djambazian, H., Ferri, L. E., Ragoussis, J., and Najafabadi, H. S. (2020). Model-based analysis of sample index hopping reveals its widespread artifacts in multiplexed single-cell RNA-sequencing. *Nature Communications*.](https://www.nature.com/articles/s41467-020-16522-z)
 
 
 Website
