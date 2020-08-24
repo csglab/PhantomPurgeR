@@ -39,8 +39,8 @@ description: Paper's analysis
 Citation
 -------
 
-Statistical modeling, estimation, and remediation of sample index hopping in multiplexed droplet-based single-cell RNA-seq data
-Rick Farouni, Haig Djambazian, Jiannis Ragoussis, Hamed S. Najafabadi. bioRxiv 617225; doi: https://doi.org/10.1101/617225.
+Farouni, R., Djambazian, H., Ferri, L. E., Ragoussis, J., and Najafabadi, H. S. (2020). Model-based analysis of sample index hopping reveals its widespread artifacts in multiplexed single-cell RNA-sequencing. <a href="https://www.biorxiv.org/content/10.1101/617225v5" target="_blank"> Nature Communications</a>.
+
 
 The bioRxiv preprint describing the approach can be accessed <a href="https://www.biorxiv.org/content/10.1101/617225v5" target="_blank">here</a>.
 
