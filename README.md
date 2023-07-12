@@ -41,6 +41,11 @@ To run the code, the following R packages are required.
 - data.table
 - cowplot
 - scales
+  
+Supplementary Data
+----------
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3336553.svg)](https://doi.org/10.5281/zenodo.3336553)
+
 
 Contact
 ---------
